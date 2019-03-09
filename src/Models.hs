@@ -31,3 +31,8 @@ newTodo inputText = do
   time <- Time.getCurrentTime
   id <- nextRandom
   return $ Pending (Content inputText) time id
+
+completedTodo :: Todo -> IO Todo
+completedTodo todo = do
+  time <- Time.getCurrentTime
+  return $ todo { _finishedAt = time }

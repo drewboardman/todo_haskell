@@ -14,3 +14,6 @@ main = hspec $ do
       todo <- newTodo $ text
       let Content inner = _content todo
       inner `shouldBe` text
+  describe "completing a todo" $ do
+    it "should create a completed todo" $ do
+      undefined
