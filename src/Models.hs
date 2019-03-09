@@ -1,5 +1,8 @@
+-- {-# LANGUAGE DeriveAnyClass #-}
 module Models
-  (
+  ( newTodo
+  , Todo(..)
+  , Content(..)
   ) where
 
 import qualified Data.Text       as T
@@ -21,6 +24,7 @@ data Todo
               , _createdAt  :: Time.UTCTime
               , _finishedAt :: Time.UTCTime
               , _id         :: TodoID }
+  deriving (Eq, Show)
 
 newTodo :: T.Text -> IO Todo
 newTodo inputText = do

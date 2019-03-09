@@ -1,2 +1,16 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
+module Spec where
+
+import Test.Hspec
+import Models
+import Data.Text
+
 main :: IO ()
-main = putStrLn "Test suite not yet implemented"
+main = hspec $ do
+  describe "creating a todo"  $ do
+    it "should return a todo" $ do
+      let text = pack "Hello World"
+      todo <- newTodo $ text
+      let Content inner = _content todo
+      inner `shouldBe` text

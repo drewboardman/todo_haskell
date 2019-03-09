@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4641d80e74c26599c395f84fe3844fd2de58038e87f8b526fb4ca4c985058539
+-- hash: 09e0412dcb6ca923157fd1ad6bcf330afe34d379a3f23481308df33daf8f392f
 
 name:           todo-haskell
 version:        0.1.0.0
@@ -35,6 +35,7 @@ library
       src
   build-depends:
       base >=4.7 && <5
+    , hspec
     , text
     , time
     , uuid
@@ -49,6 +50,7 @@ executable todo-haskell-exe
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , hspec
     , text
     , time
     , todo-haskell
@@ -65,6 +67,7 @@ test-suite todo-haskell-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , hspec
     , text
     , time
     , todo-haskell

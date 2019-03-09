@@ -24,6 +24,7 @@ dependencies:
 - uuid
 - text
 - time
+- hspec
 
 library:
   source-dirs: src
