@@ -16,6 +16,6 @@ main = hspec $ do
   describe "completing a todo" $ do
     it "should create a completed todo" $ do
       todo <- newTodo $ pack "foo"
-      let stamp = _finishedAt todo
+      stamp <- _finishedAt <$> completePendingTodo todo
       current <- Time.getCurrentTime
       stamp `shouldBe` current

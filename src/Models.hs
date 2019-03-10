@@ -1,7 +1,9 @@
 module Models
   ( newTodo
+  , completePendingTodo
   , Todo(..)
   , Content(..)
+  , TodoID
   ) where
 
 import qualified Data.Text       as T
@@ -31,7 +33,7 @@ newTodo inputText = do
   id <- nextRandom
   return $ Pending (Content inputText) time id
 
-completedTodo :: Todo -> IO Todo
-completedTodo todo = do
+completePendingTodo :: Todo -> IO Todo
+completePendingTodo todo = do
   time <- Time.getCurrentTime
   return $ todo { _finishedAt = time }
