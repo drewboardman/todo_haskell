@@ -1,7 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Spec where
-
+import qualified Data.Time.Clock as Time
 import Test.Hspec
 import Models
 import Data.Text
@@ -16,4 +15,7 @@ main = hspec $ do
       inner `shouldBe` text
   describe "completing a todo" $ do
     it "should create a completed todo" $ do
-      undefined
+      todo <- newTodo $ pack "foo"
+      let stamp = _finishedAt todo
+      current <- Time.getCurrentTime
+      stamp `shouldBe` current

@@ -1,4 +1,3 @@
--- {-# LANGUAGE DeriveAnyClass #-}
 module Models
   ( newTodo
   , Todo(..)
