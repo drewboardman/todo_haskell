@@ -49,5 +49,10 @@ tests:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -Wall
+    - -Wincomplete-uni-patterns
+    - -Wmissing-import-lists
+    - -Wmissing-export-lists
+    - -Wincomplete-record-updates
     dependencies:
     - todo-haskell

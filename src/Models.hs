@@ -1,8 +1,12 @@
+{-# LANGUAGE DuplicateRecordFields #-}
+
 module Models
   ( newTodo
   , completePendingTodo
   , Todo(..)
   , Content(..)
+  , Pending(..)
+  , Completed(..)
   , TodoID
   ) where
 
@@ -17,23 +21,24 @@ newtype Content =
 
 type TodoID = Uuid.UUID
 
-data Todo
-  = Pending { _content   :: Content
-            , _createdAt :: Time.UTCTime
-            , _id        :: TodoID }
-  | Completed { _content    :: Content
-              , _createdAt  :: Time.UTCTime
-              , _finishedAt :: Time.UTCTime
-              , _id         :: TodoID }
-  deriving (Eq, Show)
+data Todo = PendingTodo Pending | CompletedTodo Completed
 
-newTodo :: T.Text -> IO Todo
+data Pending = Pending { _content   :: Content
+                       , _createdAt :: Time.UTCTime
+                       , _id        :: TodoID } deriving (Eq)
+
+data Completed = Completed { _content    :: Content
+                           , _createdAt  :: Time.UTCTime
+                           , _finishedAt :: Time.UTCTime
+                           , _id         :: TodoID } deriving (Eq)
+
+newTodo :: T.Text -> IO Pending
 newTodo inputText = do
   time <- Time.getCurrentTime
-  id <- nextRandom
-  return $ Pending (Content inputText) time id
+  todoID <- nextRandom
+  return $ Pending (Content inputText) time todoID
 
-completePendingTodo :: Todo -> IO Todo
-completePendingTodo todo = do
+completePendingTodo :: Pending -> IO Completed
+completePendingTodo (Pending content created todoID) = do
   time <- Time.getCurrentTime
-  return $ todo { _finishedAt = time }
+  return $ Completed content created time todoID

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f6a891045d1f5cf33e9628b8ece9c6cc39af2cbf462819660bf89f17d4dabfb0
+-- hash: 859b16b1663cc79266269f2b1c305fb509275adfc0e2de48c2c1997644d61bde
 
 name:           todo-haskell
 version:        0.1.0.0
@@ -67,7 +67,7 @@ test-suite todo-haskell-test
       Paths_todo_haskell
   hs-source-dirs:
       test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns -Wmissing-import-lists -Wmissing-export-lists -Wincomplete-record-updates
   build-depends:
       base >=4.7 && <5
     , containers
