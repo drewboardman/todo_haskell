@@ -26,6 +26,7 @@ dependencies:
 - time
 - hspec
 - containers
+- beam-core
 
 library:
   source-dirs: src
