@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e34b030509de533e3152469c5d7a4870e9e2fee0265ab72859c42f7b07bb23cd
+-- hash: 5c0472b37262bb3c3c6c426986d911da6c3f211ba3dd7be7acc49e02ccaa4cf0
 
 name:           todo-haskell
 version:        0.1.0.0
@@ -35,9 +35,12 @@ library
   hs-source-dirs:
       src
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
     , beam-core
+    , beam-postgres
     , containers
+    , free
     , hspec
     , text
     , time
@@ -52,9 +55,12 @@ executable todo-haskell-exe
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
     , beam-core
+    , beam-postgres
     , containers
+    , free
     , hspec
     , text
     , time
@@ -71,9 +77,12 @@ test-suite todo-haskell-test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-uni-patterns -Wmissing-import-lists -Wmissing-export-lists -Wincomplete-record-updates
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
     , beam-core
+    , beam-postgres
     , containers
+    , free
     , hspec
     , text
     , time

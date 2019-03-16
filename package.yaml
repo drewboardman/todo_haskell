@@ -27,6 +27,10 @@ dependencies:
 - hspec
 - containers
 - beam-core
+- beam-postgres
+- aeson
+- containers
+- free
 
 library:
   source-dirs: src

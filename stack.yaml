@@ -17,32 +17,29 @@
 #
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
-resolver: lts-12.26
+resolver: lts-11.22
 
-# User packages to be built.
-# Various formats can be used as shown in the example below.
-#
-# packages:
-# - some-directory
-# - https://example.com/foo/bar/baz-0.0.2.tar.gz
-# - location:
-#    git: https://github.com/commercialhaskell/stack.git
-#    commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
-# - location: https://github.com/commercialhaskell/stack/commit/e7b331f14bcffb8367cd58fbfc8b40ec7642100a
-#  subdirs:
-#  - auto-update
-#  - wai
 packages:
-  - .
-# extra-deps:
-#   - beam-core
-#   - beam-sqlite
+- .
+# - location:
+#     git: https://github.com/tathougies/beam.git
+#     commit: a3b5e0763843fed48c7eef53fa7d08cfe710342d
+#   extra-dep: true
+#   subdirs:
+#     - beam-core
+#     - beam-postgres
 
-# Override default flag values for local packages and extra-deps
-# flags: {}
+extra-deps:
+- conduit-1.2.13.1@sha256:afd4db7fe66ae7af3d418e1a932384a8dee08df2f6299cca80e53ba964ce1228
+- aeson-1.1.2.0@sha256:a405180edbcc2667135e2046c91a1c1074040b8fc70e1f7ec8c5321c66d44c19
+- beam-core-0.7.2.3@sha256:0be625865cab91e678094eebc9a4cf376282edc61333ab9988304964db1de2fd
+- free-4.12.4@sha256:c014d770f289f8afa7a4b7ff167dda84b8b4c341ab5c76088538735d575ab13e
+- optparse-applicative-0.13.2.0@sha256:1d5126da8d43170cfc7619f0447c5f80329ed4452978c517ca54e44a643b6804
+- resourcet-1.1.11@sha256:096a3db6774a728bbe264e3e25c4e40d60e527ebd4b90c0b311deaa8d4cf4f27
+- beam-postgres-0.3.2.3@sha256:eb3445ff531af82371e5bccacb2145895b89104c243606b8f6029890cc83723f
 
-# Extra package databases containing global packages
-# extra-package-dbs: []
+
+
 
 # Control whether we use the GHC we find on the path
 # system-ghc: true
