@@ -22,7 +22,7 @@ resolver: lts-12.6
 packages:
 - .
 extra-deps:
-- beam-postgres-0.3.2.3
+- beam-sqlite-0.3.2.3
 
 
 

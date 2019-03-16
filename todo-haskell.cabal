@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e38d3071342c1e44bc2ca62d30d5bfdea5eb58843e0fa098e6b38bc4a3839562
+-- hash: 22e848c2676b7f59b243527ea1a2fec29f6b48724e3fdc4ba4e2f1cee2cd8d99
 
 name:           todo-haskell
 version:        0.1.0.0
@@ -38,12 +38,12 @@ library
       aeson
     , base >=4.7 && <5
     , beam-core
-    , beam-postgres
+    , beam-sqlite
     , containers
     , free
     , hspec
-    , postgresql-simple
     , scotty
+    , sqlite-simple
     , text
     , time
     , uuid
@@ -61,12 +61,12 @@ executable todo-haskell-exe
       aeson
     , base >=4.7 && <5
     , beam-core
-    , beam-postgres
+    , beam-sqlite
     , containers
     , free
     , hspec
-    , postgresql-simple
     , scotty
+    , sqlite-simple
     , text
     , time
     , todo-haskell
@@ -86,12 +86,12 @@ test-suite todo-haskell-test
       aeson
     , base >=4.7 && <5
     , beam-core
-    , beam-postgres
+    , beam-sqlite
     , containers
     , free
     , hspec
-    , postgresql-simple
     , scotty
+    , sqlite-simple
     , text
     , time
     , todo-haskell

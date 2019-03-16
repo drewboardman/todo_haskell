@@ -27,11 +27,11 @@ dependencies:
 - hspec
 - containers
 - beam-core
-- beam-postgres
+- beam-sqlite
 - aeson
 - containers
 - free
-- postgresql-simple
+- sqlite-simple
 - scotty
 - warp
 
