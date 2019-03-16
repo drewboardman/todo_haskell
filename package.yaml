@@ -31,6 +31,9 @@ dependencies:
 - aeson
 - containers
 - free
+- postgresql-simple
+- scotty
+- warp
 
 library:
   source-dirs: src

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5c0472b37262bb3c3c6c426986d911da6c3f211ba3dd7be7acc49e02ccaa4cf0
+-- hash: e38d3071342c1e44bc2ca62d30d5bfdea5eb58843e0fa098e6b38bc4a3839562
 
 name:           todo-haskell
 version:        0.1.0.0
@@ -42,9 +42,12 @@ library
     , containers
     , free
     , hspec
+    , postgresql-simple
+    , scotty
     , text
     , time
     , uuid
+    , warp
   default-language: Haskell2010
 
 executable todo-haskell-exe
@@ -62,10 +65,13 @@ executable todo-haskell-exe
     , containers
     , free
     , hspec
+    , postgresql-simple
+    , scotty
     , text
     , time
     , todo-haskell
     , uuid
+    , warp
   default-language: Haskell2010
 
 test-suite todo-haskell-test
@@ -84,8 +90,11 @@ test-suite todo-haskell-test
     , containers
     , free
     , hspec
+    , postgresql-simple
+    , scotty
     , text
     , time
     , todo-haskell
     , uuid
+    , warp
   default-language: Haskell2010
