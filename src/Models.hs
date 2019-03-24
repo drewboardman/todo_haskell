@@ -35,8 +35,7 @@ data Completed = Completed { _content    :: Content
 newTodo :: T.Text -> IO Pending
 newTodo inputText = do
   time <- Time.getCurrentTime
-  todoID <- nextRandom
-  return $ Pending (Content inputText) time todoID
+  Pending (Content inputText) time <$> nextRandom
 
 completePendingTodo :: Pending -> IO Completed
 completePendingTodo (Pending content created todoID) = do

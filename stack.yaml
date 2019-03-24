@@ -17,12 +17,13 @@
 #
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
-resolver: lts-12.6
+resolver: lts-13.14
 
 packages:
 - .
 extra-deps:
-- beam-sqlite-0.3.2.3
+- beam-sqlite-0.4.0.0
+- beam-migrate-0.4.0.0
 
 
 
