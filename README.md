@@ -1,6 +1,6 @@
 Questions
 =========
-* How can I use getCurrentTime (or really and IO x) in the repl?
+* How can I use getCurrentTime (or really any IO x) in the repl?
 * Why does this allow me to have 2 competing types for Todo and not complain?
 
 # todo-haskell
