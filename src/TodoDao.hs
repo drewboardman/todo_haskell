@@ -1,4 +1,6 @@
 {-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE ScopedTypeVariables    #-}
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -16,12 +18,16 @@ where
 
 import qualified Data.Text            as T
 import           Data.Time.Clock      (UTCTime)
-import           Database.Beam        (Beamable, Columnar, Database,
+import           Database.Beam        (all_, Beamable, Columnar, Database,
                                        DatabaseSettings, Generic, Identity,
                                        PrimaryKey,
+                                       runSelectReturningList,
+                                       select,
+                                       liftIO,
                                        Table (PrimaryKey, primaryKey),
                                        TableEntity, defaultDbSettings)
-import           Database.Beam.Sqlite (Sqlite)
+import           Database.SQLite.Simple          (open)
+import           Database.Beam.Sqlite (Sqlite, SqliteM, runBeamSqlite)
 
 type Todo = TodoT Identity
 
@@ -38,8 +44,20 @@ data TodoT f = Todo
   , _todoCreatedAt :: Columnar f UTCTime
   , _todoIsPending :: Columnar f Bool } deriving (Generic)
 
-data TodoDb f = TodoDb
+newtype TodoDb f = TodoDb
   { _todos :: f (TableEntity TodoT) } deriving (Generic, Database Sqlite)
 
 todoDb :: DatabaseSettings be TodoDb
 todoDb = defaultDbSettings
+
+allTodos :: IO [Todo]
+allTodos = do
+  conn <- open "todo1.db"
+  runBeamSqlite conn runSelectAll
+
+runSelectAll :: SqliteM [Todo]
+runSelectAll = do
+  let allTodosQuery = all_ (_todos todoDb)
+  let test :: () = runSelectReturningList $ select allTodosQuery
+  todos :: [Todo] <- runSelectReturningList $ select allTodosQuery
+  return todos

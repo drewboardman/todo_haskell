@@ -15,7 +15,7 @@ import qualified TodoDao                         as Dao (TodoT (..), todoDb,
 
 seed :: IO ()
 seed = do
-  let Content(content) = Content "foo"
+  let Content content = Content "Do taxes"
   myId <- toString <$> Uuid.nextRandom
   now <- Time.getCurrentTime
   conn <- open "todo1.db"
