@@ -1,11 +1,11 @@
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE ScopedTypeVariables    #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies        #-}
 
 module TodoDao
   ( Todo
@@ -16,30 +16,28 @@ module TodoDao
   )
 where
 
-import qualified Data.Text            as T
-import           Data.Time.Clock      (UTCTime)
-import           Database.Beam        (all_, Beamable, Columnar, Database,
-                                       DatabaseSettings, Generic, Identity,
-                                       PrimaryKey,
-                                       runSelectReturningList,
-                                       select,
-                                       liftIO,
-                                       Table (PrimaryKey, primaryKey),
-                                       TableEntity, defaultDbSettings)
-import           Database.SQLite.Simple          (open)
-import           Database.Beam.Sqlite (Sqlite, SqliteM, runBeamSqlite)
+import qualified Data.Text              as T
+import           Data.Time.Clock        (UTCTime)
+import           Database.Beam          (Beamable, Columnar, Database,
+                                         DatabaseSettings, Generic, Identity,
+                                         PrimaryKey,
+                                         Table (PrimaryKey, primaryKey),
+                                         TableEntity, all_, defaultDbSettings,
+                                         runSelectReturningList, select)
+import           Database.Beam.Sqlite   (Sqlite, SqliteM, runBeamSqlite)
+import           Database.SQLite.Simple (open)
 
 type Todo = TodoT Identity
 
 instance Beamable TodoT
 
 instance Table TodoT where
-  data PrimaryKey TodoT f = TodoTableID (Columnar f String)
+  data PrimaryKey TodoT f = TodoTableID (Columnar f T.Text)
     deriving (Generic, Beamable)
   primaryKey = TodoTableID . _todoId
 
 data TodoT f = Todo
-  { _todoId        :: Columnar f String
+  { _todoId        :: Columnar f T.Text
   , _todoContent   :: Columnar f T.Text
   , _todoCreatedAt :: Columnar f UTCTime
   , _todoIsPending :: Columnar f Bool } deriving (Generic)
@@ -58,6 +56,5 @@ allTodos = do
 runSelectAll :: SqliteM [Todo]
 runSelectAll = do
   let allTodosQuery = all_ (_todos todoDb)
-  let test :: () = runSelectReturningList $ select allTodosQuery
   todos :: [Todo] <- runSelectReturningList $ select allTodosQuery
   return todos
