@@ -10,7 +10,7 @@ import           Database.Beam                   (insert, insertValues,
                                                   runInsert)
 import           Database.Beam.Sqlite.Connection (runBeamSqlite)
 import           Database.SQLite.Simple          (open)
-import           Models                          (Content(..))
+import           Models                          (Content(Content))
 import qualified TodoDao                         as Dao (TodoT (..), todoDb,
                                                          _todos)
 
