@@ -1,19 +1,20 @@
-Questions
-=========
-* How can I use getCurrentTime (or really any IO x) in the repl?
-  - just use bind and it works. No need to invent a closure for it
-* Why does this allow me to have 2 competing types for Todo and not complain?
-
 # todo-haskell
 A small *to-do* app for practice
+
+Setup sqlite
+------------
+```
+sqlite3 todo1.db
+
+CREATE TABLE todos (id VARCHAR NOT NULL, content VARCHAR NOT NULL, created_at TEXT NOT NULL, is_pending INTEGER NOT NULL, PRIMARY KEY( id ));
+```
+
+Questions
+=========
 
 MVP Goals
 ------------
 * Create a text todo with a simple signature
-
-```ruby
-{ todo: {id: UUID, task: Todo, createdAt: UTCTime} }
-```
 
 * Be able to do some simple CRUD, probably just save and retrieve a todo.
 

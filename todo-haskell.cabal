@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 66ab17376e482b893bc6b8c0409d2dcea257a1c8569cfef3020a36907dffbecf
+-- hash: 3cf216821650bf747e9876f64b87e8e598eeadc7c243097def3b143da794dff1
 
 name:           todo-haskell
 version:        0.1.0.0
@@ -29,10 +29,12 @@ library
   exposed-modules:
       Models
       TodoDao
+      Seeder
   other-modules:
       Paths_todo_haskell
   hs-source-dirs:
       src
+      lib
   build-depends:
       aeson
     , base >=4.7 && <5

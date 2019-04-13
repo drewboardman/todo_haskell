@@ -36,7 +36,9 @@ dependencies:
 - warp
 
 library:
-  source-dirs: src
+  source-dirs:
+    - src
+    - lib
 
 executables:
   todo-haskell-exe:

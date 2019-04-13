@@ -8,33 +8,37 @@
 module TodoDao
   ( Todo
   , TodoT(Todo)
+  , TodoDb
+  , _todos
+  , todoDb
   )
 where
 
+import qualified Data.Text            as T
 import           Data.Time.Clock      (UTCTime)
 import           Database.Beam        (Beamable, Columnar, Database,
                                        DatabaseSettings, Generic, Identity,
-                                       PrimaryKey, Table (..), TableEntity,
-                                       defaultDbSettings)
-import           Database.Beam.Sqlite
-import           Models               (Content)
+                                       PrimaryKey,
+                                       Table (PrimaryKey, primaryKey),
+                                       TableEntity, defaultDbSettings)
+import           Database.Beam.Sqlite (Sqlite)
 
 type Todo = TodoT Identity
 
 instance Beamable TodoT
 
 instance Table TodoT where
-  data PrimaryKey TodoT f = TodoTableID (Columnar f UTCTime)
+  data PrimaryKey TodoT f = TodoTableID (Columnar f String)
     deriving (Generic, Beamable)
-  primaryKey = TodoTableID . _createdAt
+  primaryKey = TodoTableID . _todoId
 
--- figure out how to deal with the IO monad in Time.getCurrentTime
 data TodoT f = Todo
-  { _content   :: Columnar f Content
-  , _createdAt :: Columnar f UTCTime
-  , _isPending :: Columnar f Bool } deriving (Generic)
+  { _todoId        :: Columnar f String
+  , _todoContent   :: Columnar f T.Text
+  , _todoCreatedAt :: Columnar f UTCTime
+  , _todoIsPending :: Columnar f Bool } deriving (Generic)
 
-newtype TodoDb f = TodoDb
+data TodoDb f = TodoDb
   { _todos :: f (TableEntity TodoT) } deriving (Generic, Database Sqlite)
 
 todoDb :: DatabaseSettings be TodoDb
