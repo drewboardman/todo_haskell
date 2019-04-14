@@ -1,17 +1,17 @@
 name:                todo-haskell
 version:             0.1.0.0
-github:              "githubuser/todo-haskell"
+github:              "drewboardman/todo_haskell"
 license:             BSD3
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2019 Author name here"
+author:              "Drew Boardman"
+maintainer:          "drew.e.boardman@gmail.com"
+copyright:           "2019 Drew Boardman"
 
 extra-source-files:
 - README.md
 - ChangeLog.md
 
 # Metadata used when publishing your package
-# synopsis:            Short description of your package
+# synopsis:            A simple todo app
 # category:            Web
 
 # To avoid duplicated efforts in documentation and dealing with the
@@ -34,10 +34,14 @@ dependencies:
 - sqlite-simple
 - scotty
 - warp
+- servant-server
+- aeson
 
 library:
   source-dirs:
     - src
+    - src/dao
+    - src/controllers
     - lib
 
 executables:

@@ -8,11 +8,10 @@
 {-# LANGUAGE TypeFamilies        #-}
 
 module TodoDao
-  ( Todo
-  , TodoT(Todo)
-  , TodoDb
+  ( TodoT(Todo)
   , _todos
   , todoDb
+  , allTodos
   )
 where
 
