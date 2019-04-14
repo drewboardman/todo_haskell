@@ -1,5 +1,7 @@
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
+{-# LANGUAGE FlexibleInstances  #-}
 
 module Models
   ( newTodo
@@ -22,17 +24,20 @@ newtype Content =
   Content T.Text
   deriving (Show, Eq, Generic)
 
-type TodoID = Uuid.UUID
+newtype TodoID = TodoID Uuid.UUID
 
 data Todo completed = Todo { _content    :: Content
                            , _createdAt  :: Time.UTCTime
                            , _finishedAt :: completed
                            , _id         :: TodoID } deriving (Eq, Show, Generic)
 
+type CompletedTime = Time.UTCTime
 type Pending = Todo ()
-type Completed = Todo Time.UTCTime
+type Completed = Todo CompletedTime
 
-instance ToJSON Todo
+instance ToJSON Pending
+instance ToJSON Completed
+
 instance ToJSON Completed
 instance ToJSON Pending
 instance ToJSON Content
