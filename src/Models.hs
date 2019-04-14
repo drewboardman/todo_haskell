@@ -24,28 +24,25 @@ newtype Content =
 
 type TodoID = Uuid.UUID
 
-data Todo = PendingTodo Pending | CompletedTodo Completed deriving (Generic)
+data Todo completed = Todo { _content    :: Content
+                           , _createdAt  :: Time.UTCTime
+                           , _finishedAt :: completed
+                           , _id         :: TodoID } deriving (Eq, Show, Generic)
+
+type Pending = Todo ()
+type Completed = Todo Time.UTCTime
 
 instance ToJSON Todo
 instance ToJSON Completed
 instance ToJSON Pending
 instance ToJSON Content
 
-data Pending = Pending { _content   :: Content
-                       , _createdAt :: Time.UTCTime
-                       , _id        :: TodoID } deriving (Eq, Show, Generic)
-
-data Completed = Completed { _content    :: Content
-                           , _createdAt  :: Time.UTCTime
-                           , _finishedAt :: Time.UTCTime
-                           , _id         :: TodoID } deriving (Eq, Show, Generic)
-
 newTodo :: T.Text -> IO Pending
 newTodo inputText = do
   time <- Time.getCurrentTime
-  Pending (Content inputText) time <$> nextRandom
+  Todo (Content inputText) time () <$> nextRandom
 
 completePendingTodo :: Pending -> IO Completed
 completePendingTodo (Pending content created todoID) = do
   time <- Time.getCurrentTime
-  return $ Completed content created time todoID
+  return $ Todo content created time todoID
