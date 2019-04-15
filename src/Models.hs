@@ -18,18 +18,11 @@ import qualified Data.UUID       as Uuid
 import           Data.UUID.V4    (nextRandom)
 import           GHC.Generics    (Generic)
 
-newtype Content =
-  Content T.Text
-  deriving (Show, Eq, Generic)
-
 type TodoID = Uuid.UUID
 
-data Todo = PendingTodo Pending | CompletedTodo Completed deriving (Generic)
+newtype Content = Content T.Text deriving (Show, Eq, Generic)
 
-instance ToJSON Todo
-instance ToJSON Completed
-instance ToJSON Pending
-instance ToJSON Content
+data Todo = PendingTodo Pending | CompletedTodo Completed deriving (Generic)
 
 data Pending = Pending { _content   :: Content
                        , _createdAt :: Time.UTCTime
@@ -39,6 +32,11 @@ data Completed = Completed { _content    :: Content
                            , _createdAt  :: Time.UTCTime
                            , _finishedAt :: Time.UTCTime
                            , _id         :: TodoID } deriving (Eq, Show, Generic)
+
+instance ToJSON Todo
+instance ToJSON Completed
+instance ToJSON Pending
+instance ToJSON Content
 
 newTodo :: T.Text -> IO Pending
 newTodo inputText = do
