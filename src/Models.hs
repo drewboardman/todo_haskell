@@ -39,7 +39,13 @@ instance ToJSON Pending where
            , "created_at" .= created
            , "id" .= uuid ]
 
-instance ToJSON Completed
+instance ToJSON Completed where
+  toJSON (Todo c created finished uuid) =
+    object [ "content" .= c
+           , "created_at" .= created
+           , "finished_at" .= finished
+           , "id" .= uuid ]
+
 instance ToJSON TodoID
 instance ToJSON CompletedTime
 instance ToJSON Content
@@ -53,6 +59,3 @@ completePendingTodo :: Pending -> IO Completed
 completePendingTodo (Todo content created _ todoID) = do
   time <- Time.getCurrentTime
   return $ Todo content created (CompletedTime time) todoID
-
-getContent :: Todo a -> Content
-getContent (Todo c _ _ _) = c
