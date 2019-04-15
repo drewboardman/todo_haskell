@@ -1,4 +1,7 @@
 {-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE TypeSynonymInstances         #-}
+{-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE OverloadedStrings         #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 
 module Models
@@ -6,12 +9,12 @@ module Models
   , completePendingTodo
   , Todo(..)
   , Content(..)
-  , Pending(..)
-  , Completed(..)
+  , Pending
+  , Completed
   , TodoID
   ) where
 
-import           Data.Aeson      (ToJSON)
+import           Data.Aeson      ((.=), object, ToJSON, toJSON)
 import qualified Data.Text       as T
 import qualified Data.Time.Clock as Time
 import qualified Data.UUID       as Uuid
@@ -22,30 +25,34 @@ newtype TodoID = TodoID Uuid.UUID deriving (Eq, Show, Generic)
 newtype Content = Content T.Text deriving (Show, Eq, Generic)
 newtype CompletedTime = CompletedTime Time.UTCTime deriving (Show, Eq, Generic)
 
-data Todo = PendingTodo Pending | CompletedTodo Completed deriving (Generic)
+data Todo completedTime = Todo { _content    :: Content
+                               , _createdAt  :: Time.UTCTime
+                               , _finishedAt :: completedTime
+                               , _id         :: TodoID } deriving (Eq, Show, Generic)
 
-data Pending = Pending { _content   :: Content
-                       , _createdAt :: Time.UTCTime
-                       , _id        :: TodoID } deriving (Eq, Show, Generic)
+type Pending = Todo ()
+type Completed = Todo CompletedTime
 
-data Completed = Completed { _content    :: Content
-                           , _createdAt  :: Time.UTCTime
-                           , _finishedAt :: CompletedTime
-                           , _id         :: TodoID } deriving (Eq, Show, Generic)
+instance ToJSON Pending where
+  toJSON (Todo c created _ uuid) =
+    object [ "content" .= c
+           , "created_at" .= created
+           , "id" .= uuid ]
 
-instance ToJSON Todo
-instance ToJSON TodoID
 instance ToJSON Completed
+instance ToJSON TodoID
 instance ToJSON CompletedTime
-instance ToJSON Pending
 instance ToJSON Content
 
 newTodo :: T.Text -> IO Pending
 newTodo inputText = do
   time <- Time.getCurrentTime
-  Pending (Content inputText) time . TodoID <$> nextRandom
+  Todo (Content inputText) time () . TodoID <$> nextRandom
 
 completePendingTodo :: Pending -> IO Completed
-completePendingTodo (Pending content created todoID) = do
+completePendingTodo (Todo content created _ todoID) = do
   time <- Time.getCurrentTime
-  return $ Completed content created (CompletedTime time) todoID
+  return $ Todo content created (CompletedTime time) todoID
+
+getContent :: Todo a -> Content
+getContent (Todo c _ _ _) = c
