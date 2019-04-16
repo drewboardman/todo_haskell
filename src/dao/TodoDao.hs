@@ -12,6 +12,7 @@ module TodoDao
   , _todos
   , todoDb
   , allTodos
+  , Todo
   )
 where
 

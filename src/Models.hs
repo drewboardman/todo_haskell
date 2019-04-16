@@ -1,8 +1,9 @@
 {-# LANGUAGE DeriveGeneric         #-}
-{-# LANGUAGE TypeSynonymInstances         #-}
-{-# LANGUAGE FlexibleInstances         #-}
-{-# LANGUAGE OverloadedStrings         #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
 
 module Models
   ( newTodo
@@ -14,12 +15,13 @@ module Models
   , TodoID
   ) where
 
-import           Data.Aeson      ((.=), object, ToJSON, toJSON)
+import           Data.Aeson      (ToJSON, object, toJSON, (.=))
 import qualified Data.Text       as T
 import qualified Data.Time.Clock as Time
 import qualified Data.UUID       as Uuid
 import           Data.UUID.V4    (nextRandom)
 import           GHC.Generics    (Generic)
+import qualified TodoDao         as Dao (Todo, TodoT (Todo), allTodos)
 
 newtype TodoID = TodoID Uuid.UUID deriving (Eq, Show, Generic)
 newtype Content = Content T.Text deriving (Show, Eq, Generic)
@@ -59,3 +61,28 @@ completePendingTodo :: Pending -> IO Completed
 completePendingTodo (Todo content created _ todoID) = do
   time <- Time.getCurrentTime
   return $ Todo content created (CompletedTime time) todoID
+
+allTodos :: IO ([Pending], [Completed])
+allTodos = do
+  all <- Dao.allTodos
+  splitTodos all
+
+splitTodos :: [Dao.Todo] -> IO ([Pending], [Completed])
+splitTodos todos = foldr splitter ([] :: [Pending], [] :: [Completed]) todos
+
+splitter :: Dao.Todo -> ([Pending], [Completed]) -> ([Pending], [Completed])
+splitter todo (pendings, completeds) =
+  case todo of
+    (Dao.Todo _ _ _ 1) -> (daoPendingToModels todo : pendings, completeds)
+    (Dao.Todo _ _ _ 0) -> (pendings, fmap (:) (daoCompletedToModels todo) completeds)
+
+daoPendingToModels :: Dao.Todo -> Pending
+daoPendingToModels (Dao.Todo id content created _) = do
+  uuid <- Uuid.fromText id
+  Todo content created () uuid
+
+daoCompletedToModels :: Dao.Todo -> IO Completed
+daoCompletedToModels (Dao.Todo id content created _) = do
+  uuid <- Uuid.fromText id
+  time <- Time.getCurrentTime
+  Todo content created time uuid
