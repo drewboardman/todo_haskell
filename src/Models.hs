@@ -81,8 +81,19 @@ daoPendingToModels (Dao.Todo id content created _) = do
   uuid <- Uuid.fromText id
   Todo content created () uuid
 
-daoCompletedToModels :: Dao.Todo -> IO Completed
-daoCompletedToModels (Dao.Todo id content created _) = do
-  uuid <- Uuid.fromText id
-  time <- Time.getCurrentTime
-  Todo content created time uuid
+-- daoCompletedToModels :: Dao.Todo -> Completed
+-- daoCompletedToModels (Dao.Todo id text created _) = do
+--   let ioTime :: IO Time.UTCTime = Time.getCurrentTime
+--   let maybeUUID :: Maybe Uuid.UUID = Uuid.fromText id
+--   bindedTime <- ioTime
+--   bindedUuid <- maybeUUID
+--   let completed :: CompletedTime = CompletedTime bindedTime
+--   let uuid :: TodoID = TodoID bindedUuid
+--   let todo = Todo (Content text) created completed uuid
+--   todo
+
+daoCompletedToModels :: Dao.Todo -> Completed
+daoCompletedToModels (Dao.Todo id text created _) = do
+  completed <- CompletedTime <$> Time.getCurrentTime
+  uuid <- TodoID <$> Uuid.fromText id
+  return $ Todo (Content text) created completed uuid
