@@ -16,6 +16,7 @@ module Models
   ) where
 
 import           Data.Aeson      (ToJSON, object, toJSON, (.=))
+import Data.Either (partitionEithers)
 import qualified Data.Text       as T
 import qualified Data.Time.Clock as Time
 import qualified Data.UUID       as Uuid
@@ -62,27 +63,20 @@ completePendingTodo (Todo content created _ todoID) = do
   time <- Time.getCurrentTime
   return $ Todo content created (CompletedTime time) todoID
 
--- allTodos :: IO ([Pending], [Completed])
--- allTodos = do
---   all <- Dao.allTodos
---   splitTodos all
-
--- splitTodos :: [Dao.Todo] -> IO ([Pending], [Completed])
--- splitTodos todos = foldr splitter ([] :: [Pending], [] :: [Completed]) todos
+allTodos :: IO ([Pending], [Completed])
+allTodos = do
+  all <- Dao.allTodos
+  partitionEithers <$> toEithers all
 
 toEithers :: [Dao.Todo] -> IO [Either (Maybe Pending) (Maybe Completed)]
 toEithers todos = mapM splitter todos
 
 splitter :: Dao.Todo -> IO (Either (Maybe Pending) (Maybe Completed))
 splitter todo = case todo of
-    (Dao.Todo _ _ _ Nothing) -> return $ fmap convertPending (daoPendingToModels todo)
-    (Dao.Todo _ _ _ (Just _)) -> return $ fmap convertCompleted (daoCompletedToModels todo)
-
-convertPending :: Maybe Pending -> Either (Maybe Pending) (Maybe Completed)
-convertPending x = Left x :: Either (Maybe Pending) (Maybe Completed)
-
-convertCompleted :: Maybe Completed -> Either (Maybe Pending) (Maybe Completed)
-convertCompleted x = Right x :: Either (Maybe Pending) (Maybe Completed)
+    (Dao.Todo _ _ _ Nothing) ->
+      fmap (\maybePending -> Left maybePending) (daoPendingToModels todo)
+    (Dao.Todo _ _ _ (Just _)) ->
+      fmap (\maybeCompleted -> Right maybeCompleted) (daoCompletedToModels todo)
 
 daoPendingToModels :: Dao.Todo -> IO (Maybe Pending)
 daoPendingToModels (Dao.Todo id' content created _) =
