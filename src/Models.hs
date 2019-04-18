@@ -66,28 +66,24 @@ completePendingTodo (Todo content created _ todoID) = do
 allTodos :: IO ([Pending], [Completed])
 allTodos = do
   all <- Dao.allTodos
-  partitionEithers <$> toEithers all
+  return $ fmap mconcat partitionEithers <$> map toEithers all
 
-toEithers :: [Dao.Todo] -> IO [Either (Maybe Pending) (Maybe Completed)]
-toEithers todos = mapM splitter todos
-
-splitter :: Dao.Todo -> IO (Either (Maybe Pending) (Maybe Completed))
-splitter todo = case todo of
+toEithers :: Dao.Todo -> Either (Maybe Pending) (Maybe Completed)
+toEithers todo = case todo of
     (Dao.Todo _ _ _ Nothing) ->
-      fmap (\maybePending -> Left maybePending) (daoPendingToModels todo)
+      fmap Left (daoPendingToModels todo)
     (Dao.Todo _ _ _ (Just _)) ->
-      fmap (\maybeCompleted -> Right maybeCompleted) (daoCompletedToModels todo)
+      fmap Right (daoCompletedToModels todo)
 
-daoPendingToModels :: Dao.Todo -> IO (Maybe Pending)
+daoPendingToModels :: Dao.Todo -> Maybe Pending
 daoPendingToModels (Dao.Todo id' content created _) =
   case Uuid.fromText id' of
-    Just uuid -> pure $ Just $ Todo (Content content) created () (TodoID uuid)
-    Nothing -> pure Nothing
+    Just uuid -> Just $ Todo (Content content) created () (TodoID uuid)
+    Nothing -> Nothing
 
-daoCompletedToModels :: Dao.Todo -> IO (Maybe Completed)
+daoCompletedToModels :: Dao.Todo -> Maybe Completed
 daoCompletedToModels (Dao.Todo id' text created maybeFinished) =
   case (Uuid.fromText id', maybeFinished) of
-    (Just uuid, Just finished) -> pure completedTodo where
-      completedTodo = -- make this look less like shit
+    (Just uuid, Just finished) ->
         Just $ Todo (Content text) created (CompletedTime finished) (TodoID uuid)
-    (_, _) -> pure Nothing
+    (_, _) -> Nothing
