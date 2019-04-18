@@ -75,8 +75,8 @@ toEithers todos = mapM splitter todos
 
 splitter :: Dao.Todo -> IO (Either (Maybe Pending) (Maybe Completed))
 splitter todo = case todo of
-    (Dao.Todo _ _ _ Nothing) -> fmap convertPending (daoPendingToModels todo)
-    (Dao.Todo _ _ _ (Just _)) -> fmap convertCompleted (daoCompletedToModels todo)
+    (Dao.Todo _ _ _ Nothing) -> return $ fmap convertPending (daoPendingToModels todo)
+    (Dao.Todo _ _ _ (Just _)) -> return $ fmap convertCompleted (daoCompletedToModels todo)
 
 convertPending :: Maybe Pending -> Either (Maybe Pending) (Maybe Completed)
 convertPending x = Left x :: Either (Maybe Pending) (Maybe Completed)
