@@ -70,21 +70,24 @@ completePendingTodo (Todo content created _ todoID) = do
 -- splitTodos :: [Dao.Todo] -> IO ([Pending], [Completed])
 -- splitTodos todos = foldr splitter ([] :: [Pending], [] :: [Completed]) todos
 
-toEither :: [Dao.Todo] -> IO [Either (Maybe Pending) (Maybe Completed)]
-toEither todos = mapM splitter todos
+toEithers :: [Dao.Todo] -> IO [Either (Maybe Pending) (Maybe Completed)]
+toEithers todos = mapM splitter todos
 
 splitter :: Dao.Todo -> IO (Either (Maybe Pending) (Maybe Completed))
 splitter todo = case todo of
-    (Dao.Todo _ _ _ Nothing) ->
-      Left <$> daoPendingToModels todo :: Either (Maybe Pending) (Maybe Completed)
-    (Dao.Todo _ _ _ (Just _)) ->
-      Right <$> daoCompletedToModels todo :: Either (Maybe Pending) (Maybe Completed)
+    (Dao.Todo _ _ _ Nothing) -> fmap convertPending (daoPendingToModels todo)
+    (Dao.Todo _ _ _ (Just _)) -> fmap convertCompleted (daoCompletedToModels todo)
+
+convertPending :: Maybe Pending -> Either (Maybe Pending) (Maybe Completed)
+convertPending x = Left x :: Either (Maybe Pending) (Maybe Completed)
+
+convertCompleted :: Maybe Completed -> Either (Maybe Pending) (Maybe Completed)
+convertCompleted x = Right x :: Either (Maybe Pending) (Maybe Completed)
 
 daoPendingToModels :: Dao.Todo -> IO (Maybe Pending)
 daoPendingToModels (Dao.Todo id' content created _) =
   case Uuid.fromText id' of
-    Just uuid ->
-      pure $ Just $ Todo (Content content) created () (TodoID uuid)
+    Just uuid -> pure $ Just $ Todo (Content content) created () (TodoID uuid)
     Nothing -> pure Nothing
 
 daoCompletedToModels :: Dao.Todo -> IO (Maybe Completed)
