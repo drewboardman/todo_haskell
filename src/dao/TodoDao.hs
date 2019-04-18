@@ -37,10 +37,10 @@ instance Table TodoT where
   primaryKey = TodoTableID . _todoId
 
 data TodoT f = Todo
-  { _todoId        :: Columnar f T.Text
-  , _todoContent   :: Columnar f T.Text
-  , _todoCreatedAt :: Columnar f UTCTime
-  , _todoIsPending :: Columnar f Bool } deriving (Generic)
+  { _todoId         :: Columnar f T.Text
+  , _todoContent    :: Columnar f T.Text
+  , _todoCreatedAt  :: Columnar f UTCTime
+  , _todoFinishedAt :: Columnar f (Maybe UTCTime) } deriving (Generic)
 
 newtype TodoDb f = TodoDb
   { _todos :: f (TableEntity TodoT) } deriving (Generic, Database Sqlite)

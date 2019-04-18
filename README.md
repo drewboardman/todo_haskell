@@ -6,7 +6,7 @@ Setup sqlite
 ```
 sqlite3 todo1.db
 
-CREATE TABLE todos (id VARCHAR NOT NULL, content VARCHAR NOT NULL, created_at TEXT NOT NULL, is_pending INTEGER NOT NULL, PRIMARY KEY( id ));
+CREATE TABLE todos (id VARCHAR NOT NULL, content VARCHAR NOT NULL, created_at TEXT NOT NULL, finished_At Text NULL, PRIMARY KEY( id ));
 ```
 
 Future goals

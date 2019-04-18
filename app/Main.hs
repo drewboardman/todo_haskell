@@ -5,4 +5,5 @@ import TodoController (app)
 import Network.Wai.Handler.Warp
 
 main :: IO ()
-main = run 8081 app
+main = seed
+-- main = run 8081 app

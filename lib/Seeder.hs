@@ -17,9 +17,14 @@ import qualified TodoDao                         as Dao (TodoT (..), todoDb,
 seed :: IO ()
 seed = do
   let Content content = Content "get this to compile"
+  let Content content2 = Content "testing nullable col"
   myId <- toText <$> Uuid.nextRandom
+  myId2 <- toText <$> Uuid.nextRandom
   now <- Time.getCurrentTime
+  now2 <- Time.getCurrentTime
+  finished <- Time.getCurrentTime
   conn <- open "todo1.db"
   runBeamSqlite conn $ runInsert $
     insert (Dao._todos Dao.todoDb) $
-      insertValues [ Dao.Todo myId content now True ]
+      insertValues [ Dao.Todo myId content now (Just finished)
+                   , Dao.Todo myId2 content2 now2 Nothing ]

@@ -62,29 +62,35 @@ completePendingTodo (Todo content created _ todoID) = do
   time <- Time.getCurrentTime
   return $ Todo content created (CompletedTime time) todoID
 
-allTodos :: IO ([Pending], [Completed])
-allTodos = do
-  all <- Dao.allTodos
-  splitTodos all
+-- allTodos :: IO ([Pending], [Completed])
+-- allTodos = do
+--   all <- Dao.allTodos
+--   splitTodos all
 
-splitTodos :: [Dao.Todo] -> IO ([Pending], [Completed])
-splitTodos todos = foldr splitter ([] :: [Pending], [] :: [Completed]) todos
+-- splitTodos :: [Dao.Todo] -> IO ([Pending], [Completed])
+-- splitTodos todos = foldr splitter ([] :: [Pending], [] :: [Completed]) todos
 
-splitter :: Dao.Todo -> ([Pending], [Completed]) -> ([Pending], [Completed])
-splitter todo (pendings, completeds) =
-  case todo of
-    (Dao.Todo _ _ _ 1) -> (daoPendingToModels todo : pendings, completeds)
-    (Dao.Todo _ _ _ 0) -> (pendings, fmap (:) (daoCompletedToModels todo) completeds)
+toEither :: [Dao.Todo] -> IO [Either (Maybe Pending) (Maybe Completed)]
+toEither todos = mapM splitter todos
 
-daoPendingToModels :: Dao.Todo -> Pending
-daoPendingToModels (Dao.Todo id content created _) = do
-  uuid <- Uuid.fromText id
-  Todo content created () uuid
+splitter :: Dao.Todo -> IO (Either (Maybe Pending) (Maybe Completed))
+splitter todo = case todo of
+    (Dao.Todo _ _ _ Nothing) ->
+      Left <$> daoPendingToModels todo :: Either (Maybe Pending) (Maybe Completed)
+    (Dao.Todo _ _ _ (Just _)) ->
+      Right <$> daoCompletedToModels todo :: Either (Maybe Pending) (Maybe Completed)
+
+daoPendingToModels :: Dao.Todo -> IO (Maybe Pending)
+daoPendingToModels (Dao.Todo id' content created _) =
+  case Uuid.fromText id' of
+    Just uuid ->
+      pure $ Just $ Todo (Content content) created () (TodoID uuid)
+    Nothing -> pure Nothing
 
 daoCompletedToModels :: Dao.Todo -> IO (Maybe Completed)
-daoCompletedToModels (Dao.Todo id text created _) = do
-  completed <- CompletedTime <$> Time.getCurrentTime
-  let maybeUuid = TodoID <$> Uuid.fromText id
-  case maybeUuid of
-    Just uuid -> Just $ Todo (Content text) created completed uuid
-    _ -> Nothing
+daoCompletedToModels (Dao.Todo id' text created maybeFinished) =
+  case (Uuid.fromText id', maybeFinished) of
+    (Just uuid, Just finished) -> pure completedTodo where
+      completedTodo = -- make this look less like shit
+        Just $ Todo (Content text) created (CompletedTime finished) (TodoID uuid)
+    (_, _) -> pure Nothing
