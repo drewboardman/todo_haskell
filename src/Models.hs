@@ -13,10 +13,12 @@ module Models
   , Pending
   , Completed
   , TodoID
+  , allTodos
   ) where
 
 import           Data.Aeson      (ToJSON, object, toJSON, (.=))
-import Data.Either (partitionEithers)
+import           Data.Either     (partitionEithers)
+import           Data.Maybe      (catMaybes)
 import qualified Data.Text       as T
 import qualified Data.Time.Clock as Time
 import qualified Data.UUID       as Uuid
@@ -65,21 +67,23 @@ completePendingTodo (Todo content created _ todoID) = do
 
 allTodos :: IO ([Pending], [Completed])
 allTodos = do
-  all <- Dao.allTodos
-  return $ fmap mconcat partitionEithers <$> map toEithers all
+  all' <- Dao.allTodos
+  let partitioned = partitionEithers $ map toEither all'
+  -- how to map over a tuple?
+  let pendings = catMaybes $ fst partitioned
+  let completeds = catMaybes $ snd partitioned
+  return (pendings, completeds)
 
-toEithers :: Dao.Todo -> Either (Maybe Pending) (Maybe Completed)
-toEithers todo = case todo of
-    (Dao.Todo _ _ _ Nothing) ->
-      fmap Left (daoPendingToModels todo)
-    (Dao.Todo _ _ _ (Just _)) ->
-      fmap Right (daoCompletedToModels todo)
+toEither :: Dao.Todo -> Either (Maybe Pending) (Maybe Completed)
+toEither todo = case todo of
+    (Dao.Todo _ _ _ Nothing)  -> Left (daoPendingToModels todo)
+    (Dao.Todo _ _ _ (Just _)) -> Right (daoCompletedToModels todo)
 
 daoPendingToModels :: Dao.Todo -> Maybe Pending
 daoPendingToModels (Dao.Todo id' content created _) =
   case Uuid.fromText id' of
     Just uuid -> Just $ Todo (Content content) created () (TodoID uuid)
-    Nothing -> Nothing
+    Nothing   -> Nothing
 
 daoCompletedToModels :: Dao.Todo -> Maybe Completed
 daoCompletedToModels (Dao.Todo id' text created maybeFinished) =
