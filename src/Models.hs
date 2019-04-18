@@ -69,10 +69,10 @@ allTodos :: IO ([Pending], [Completed])
 allTodos = do
   all' <- Dao.allTodos
   let partitioned = partitionEithers $ map toEither all'
-  -- how to map over a tuple?
-  let pendings = catMaybes $ fst partitioned
-  let completeds = catMaybes $ snd partitioned
-  return (pendings, completeds)
+  return $ catBoth partitioned
+
+catBoth :: ([Maybe a1], [Maybe a2]) -> ([a1], [a2])
+catBoth (a1, a2) = (catMaybes a1, catMaybes a2)
 
 toEither :: Dao.Todo -> Either (Maybe Pending) (Maybe Completed)
 toEither todo = case todo of
