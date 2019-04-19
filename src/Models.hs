@@ -10,6 +10,7 @@ module Models
   , Todo(..)
   , Content(..)
   , Pending
+  , GeneralTodo(CompletedTodo, PendingTodo)
   , Completed
   , TodoID(TodoID)
   , CompletedTime(CompletedTime)
@@ -32,6 +33,8 @@ data Todo completedTime = Todo { _content    :: Content
 
 data AllTodos = AllTodos { _pendings   :: [Pending]
                          , _completeds :: [Completed] } deriving (Eq, Show, Generic)
+
+data GeneralTodo = PendingTodo Pending | CompletedTodo Completed
 
 type Pending = Todo ()
 type Completed = Todo CompletedTime

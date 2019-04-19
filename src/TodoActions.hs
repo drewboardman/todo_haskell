@@ -2,7 +2,7 @@
 
 module TodoActions (singleTodo, allTodos, newTodo, completePendingTodo) where
 
-import           Data.Either     (partitionEithers)
+import           Data.Either     (isLeft, fromLeft, fromRight, partitionEithers)
 import           Data.Maybe      (catMaybes)
 import qualified Data.Text       as T (Text)
 import qualified Data.Time.Clock as Time
@@ -10,8 +10,9 @@ import qualified Data.UUID       as Uuid
 import           Data.UUID.V4    (nextRandom)
 import qualified Models          as M (AllTodos (AllTodos), Completed,
                                        CompletedTime (CompletedTime),
-                                       Content (Content), Pending, Todo (Todo),
-                                       TodoID (TodoID))
+                                       Content (Content),
+                                       GeneralTodo (CompletedTodo, PendingTodo),
+                                       Pending, Todo (Todo), TodoID (TodoID))
 import qualified TodoDao         as Dao (Todo, TodoT (Todo), allTodos,
                                          singleTodo)
 
@@ -31,13 +32,17 @@ allTodos = do
   let partitioned = partitionEithers $ map toEither all'
   return $ M.AllTodos (catMaybes $ fst partitioned) (catMaybes $ snd partitioned)
 
-singleTodo :: M.TodoID -> IO (Maybe (Either M.Pending M.Completed))
+singleTodo :: M.TodoID -> IO (Maybe M.GeneralTodo)
 singleTodo (M.TodoID uuid) = do
-  fetched <- Dao.singleTodo $ Uuid.toText uuid
-  case fetched of
-    Just daoTodo -> sequenceA $ toEither daoTodo
-    Nothing -> Nothing
+  maybeFetched :: Maybe Dao.Todo <- Dao.singleTodo $ Uuid.toText uuid
+  pure (intoGeneralTodo =<< maybeFetched)
 
+intoGeneralTodo :: Dao.Todo -> Maybe M.GeneralTodo
+intoGeneralTodo x = do
+  let y = toEither x
+  case isLeft y of
+    True  -> M.PendingTodo <$> fromLeft Nothing y
+    False -> M.CompletedTodo <$> fromRight Nothing y
 
 toEither :: Dao.Todo -> Either (Maybe M.Pending) (Maybe M.Completed)
 toEither todo = case todo of
