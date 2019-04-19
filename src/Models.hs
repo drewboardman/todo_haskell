@@ -7,6 +7,7 @@
 
 module Models
   ( newTodo
+  , AllTodos(AllTodos)
   , completePendingTodo
   , Todo(..)
   , Content(..)
@@ -35,8 +36,16 @@ data Todo completedTime = Todo { _content    :: Content
                                , _finishedAt :: completedTime
                                , _id         :: TodoID } deriving (Eq, Show, Generic)
 
+data AllTodos = AllTodos { _pendings   :: [Pending]
+                         , _completeds :: [Completed] } deriving (Eq, Show, Generic)
+
 type Pending = Todo ()
 type Completed = Todo CompletedTime
+
+instance ToJSON AllTodos where
+  toJSON (AllTodos ps cs) =
+    object [ "pending_todos" .= ps
+           , "completed_todos" .= cs ]
 
 instance ToJSON Pending where
   toJSON (Todo c created _ uuid) =
@@ -65,14 +74,11 @@ completePendingTodo (Todo content created _ todoID) = do
   time <- Time.getCurrentTime
   return $ Todo content created (CompletedTime time) todoID
 
-allTodos :: IO ([Pending], [Completed])
+allTodos :: IO AllTodos
 allTodos = do
   all' <- Dao.allTodos
   let partitioned = partitionEithers $ map toEither all'
-  return $ catBoth partitioned
-
-catBoth :: ([Maybe a1], [Maybe a2]) -> ([a1], [a2])
-catBoth (a1, a2) = (catMaybes a1, catMaybes a2)
+  return $ AllTodos (catMaybes $ fst partitioned) (catMaybes $ snd partitioned)
 
 toEither :: Dao.Todo -> Either (Maybe Pending) (Maybe Completed)
 toEither todo = case todo of

@@ -3,13 +3,14 @@
 
 module TodoController (app) where
 
-import qualified Models  as M (Completed, Pending)
-import           Servant ((:>), Application, Get, JSON, Proxy (Proxy), Server,
-                          serve)
+import           Control.Monad.IO.Class (liftIO)
+import qualified Models                 as M (AllTodos, allTodos)
+import           Servant                ((:>), Application, Get, JSON,
+                                         Proxy (Proxy), Server, serve)
 
 type TodoAPI =
   -- /todos/all -- returns all Todos
-  "todos" :> "all" :> Get '[JSON] ([M.Pending], [M.Completed])
+  "todos" :> "all" :> Get '[JSON] M.AllTodos
 
 app :: Application
 app = serve todoAPI todoServer
@@ -18,4 +19,6 @@ todoAPI :: Proxy TodoAPI
 todoAPI = Proxy
 
 todoServer :: Server TodoAPI
-todoServer = return ([], [])
+todoServer = do
+  allReturn <- liftIO M.allTodos
+  return allReturn
