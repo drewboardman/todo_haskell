@@ -36,6 +36,7 @@ dependencies:
 - warp
 - servant-server
 - aeson
+- wai-logger
 
 library:
   source-dirs:

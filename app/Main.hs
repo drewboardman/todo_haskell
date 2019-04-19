@@ -1,9 +1,11 @@
 module Main where
 
 -- import Seeder (seed)
-import TodoController (app)
-import Network.Wai.Handler.Warp
+import           Network.Wai.Handler.Warp
+import           Network.Wai.Logger       (withStdoutLogger)
+import           TodoController           (app)
 
 main :: IO ()
--- main = seed
-main = run 8081 app
+main = withStdoutLogger $ \aplogger -> do
+        let settings = setPort 8081 $ setLogger aplogger defaultSettings
+        runSettings settings app

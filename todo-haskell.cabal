@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ababcf328780c398684a09dd77d1d938164de19b350a9ff2244c4bc6b411698e
+-- hash: 3d91c330e3238bf6ad9271b88e4ea48b7c10f014acff43d0bcefad898f601012
 
 name:           todo-haskell
 version:        0.1.0.0
@@ -52,6 +52,7 @@ library
     , text
     , time
     , uuid
+    , wai-logger
     , warp
   default-language: Haskell2010
 
@@ -77,6 +78,7 @@ executable todo-haskell-exe
     , time
     , todo-haskell
     , uuid
+    , wai-logger
     , warp
   default-language: Haskell2010
 
@@ -103,5 +105,6 @@ test-suite todo-haskell-test
     , time
     , todo-haskell
     , uuid
+    , wai-logger
     , warp
   default-language: Haskell2010

@@ -19,6 +19,4 @@ todoAPI :: Proxy TodoAPI
 todoAPI = Proxy
 
 todoServer :: Server TodoAPI
-todoServer = do
-  allReturn <- liftIO M.allTodos
-  return allReturn
+todoServer = liftIO M.allTodos
