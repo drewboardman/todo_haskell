@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3d91c330e3238bf6ad9271b88e4ea48b7c10f014acff43d0bcefad898f601012
+-- hash: 757e8ee9ce4d96106c0e8d96ddf5e6e4720973710cca6eb9f9930bf7098430c0
 
 name:           todo-haskell
 version:        0.1.0.0
@@ -28,6 +28,7 @@ source-repository head
 library
   exposed-modules:
       Models
+      TodoActions
       TodoDao
       TodoController
       Seeder
@@ -46,6 +47,7 @@ library
     , containers
     , free
     , hspec
+    , lens
     , scotty
     , servant-server
     , sqlite-simple
@@ -71,6 +73,7 @@ executable todo-haskell-exe
     , containers
     , free
     , hspec
+    , lens
     , scotty
     , servant-server
     , sqlite-simple
@@ -98,6 +101,7 @@ test-suite todo-haskell-test
     , containers
     , free
     , hspec
+    , lens
     , scotty
     , servant-server
     , sqlite-simple

@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE GADTs               #-}
+{-# LANGUAGE ImpredicativeTypes  #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies        #-}
@@ -12,18 +13,23 @@ module TodoDao
   , _todos
   , todoDb
   , allTodos
+  , singleTodo
   , Todo
   )
 where
 
+import           Control.Lens           ((^.))
+import           Data.Maybe             (listToMaybe)
 import qualified Data.Text              as T
 import           Data.Time.Clock        (UTCTime)
 import           Database.Beam          (Beamable, Columnar, Database,
                                          DatabaseSettings, Generic, Identity,
-                                         PrimaryKey,
+                                         LensFor (LensFor), PrimaryKey,
                                          Table (PrimaryKey, primaryKey),
                                          TableEntity, all_, defaultDbSettings,
-                                         runSelectReturningList, select)
+                                         guard_, runSelectReturningList, select,
+                                         val_, (==.))
+import           Database.Beam.Schema   (tableLenses)
 import           Database.Beam.Sqlite   (Sqlite, SqliteM, runBeamSqlite)
 import           Database.SQLite.Simple (open)
 
@@ -53,8 +59,23 @@ allTodos = do
   conn <- open "todo1.db"
   runBeamSqlite conn runSelectAll
 
+singleTodo :: T.Text -> IO (Maybe Todo)
+singleTodo uuid = do
+  conn <- open "todo1.db"
+  let resultAsList :: IO [Todo] = runBeamSqlite conn $ runSelectSingleUuid uuid
+  fmap listToMaybe resultAsList
+
 runSelectAll :: SqliteM [Todo]
 runSelectAll = do
   let allTodosQuery = all_ (_todos todoDb)
   todos :: [Todo] <- runSelectReturningList $ select allTodosQuery
   return todos
+
+-- SELECT * WHERE UUID=<uuid>
+runSelectSingleUuid :: T.Text -> SqliteM [Todo]
+runSelectSingleUuid uuid =
+  runSelectReturningList $ select $ do
+    let Todo (LensFor todoId) _ _ _ = tableLenses
+    todo <- all_ $ _todos todoDb
+    guard_ $ (todo ^. todoId) ==. val_ uuid
+    return todo

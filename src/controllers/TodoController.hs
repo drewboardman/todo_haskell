@@ -4,7 +4,8 @@
 module TodoController (app) where
 
 import           Control.Monad.IO.Class (liftIO)
-import qualified Models                 as M (AllTodos, allTodos)
+import qualified Models                 as M (AllTodos)
+import qualified TodoActions as Actions (allTodos)
 import           Servant                ((:>), Application, Get, JSON,
                                          Proxy (Proxy), Server, serve)
 
@@ -19,4 +20,4 @@ todoAPI :: Proxy TodoAPI
 todoAPI = Proxy
 
 todoServer :: Server TodoAPI
-todoServer = liftIO M.allTodos
+todoServer = liftIO Actions.allTodos

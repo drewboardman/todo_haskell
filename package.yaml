@@ -37,6 +37,7 @@ dependencies:
 - servant-server
 - aeson
 - wai-logger
+- lens
 
 library:
   source-dirs:
