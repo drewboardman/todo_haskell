@@ -18,13 +18,14 @@ seed :: IO ()
 seed = do
   let Content content = Content "get this to compile"
   let Content content2 = Content "testing nullable col"
+  let Content content3 = Content "does this controller handle lists?"
   myId <- toText <$> Uuid.nextRandom
   myId2 <- toText <$> Uuid.nextRandom
+  myId3 <- toText <$> Uuid.nextRandom
   now <- Time.getCurrentTime
-  now2 <- Time.getCurrentTime
-  finished <- Time.getCurrentTime
   conn <- open "todo1.db"
   runBeamSqlite conn $ runInsert $
     insert (Dao._todos Dao.todoDb) $
-      insertValues [ Dao.Todo myId content now (Just finished)
-                   , Dao.Todo myId2 content2 now2 Nothing ]
+      insertValues [ Dao.Todo myId content now (Just now)
+                   , Dao.Todo myId2 content2 now Nothing
+                   , Dao.Todo myId3 content3 now (Just now) ]

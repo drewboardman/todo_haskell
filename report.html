@@ -162,16 +162,13 @@ document.body.className = "script";
 <p><a class="all" href="javascript:show('')">All hints</a></p>
 <ul>
 <li><a id="hint0" href="javascript:show('hint0')">Warning: Redundant do (2)</a></li>
-<li><a id="hint1" href="javascript:show('hint1')">Warning: Unused LANGUAGE pragma (2)</a></li>
-<li><a id="hint2" href="javascript:show('hint2')">Warning: Use &lt;$&gt; (1)</a></li>
-<li><a id="hint3" href="javascript:show('hint3')">Suggestion: Redundant $ (1)</a></li>
+<li><a id="hint1" href="javascript:show('hint1')">Warning: Redundant return (1)</a></li>
 </ul>
 
 <p><a class="all" href="javascript:show('')">All files</a></p>
 <ul>
-<li><a id="file0" href="javascript:show('file0')">./src/DatabaseThings.hs (2)</a></li>
-<li><a id="file1" href="javascript:show('file1')">./src/Models.hs (1)</a></li>
-<li><a id="file2" href="javascript:show('file2')">./test/Spec.hs (3)</a></li>
+<li><a id="file0" href="javascript:show('file0')">./src/controllers/TodoController.hs (1)</a></li>
+<li><a id="file1" href="javascript:show('file1')">./test/Spec.hs (2)</a></li>
 </ul>
 
 </div>
@@ -183,63 +180,34 @@ v2.1.11
 </p>
 
 <div class="hint1 file0">
-./src/DatabaseThings.hs:5:1: Warning: Unused LANGUAGE pragma<br/>
+./src/controllers/TodoController.hs:22:14: Warning: Redundant return<br/>
 Found<br/>
-<pre><span class='hs-comment'>{-# LANGUAGE OverloadedStrings #-}</span></pre>
-Perhaps you should remove it.<br/>
-<pre></pre>
-
-</div>
-
-<div class="hint1 file0">
-./src/DatabaseThings.hs:6:1: Warning: Unused LANGUAGE pragma<br/>
-Found<br/>
-<pre><span class='hs-comment'>{-# LANGUAGE TypeApplications #-}</span></pre>
-Perhaps you should remove it.<br/>
-<pre></pre>
-
-</div>
-
-<div class="hint2 file1">
-./src/Models.hs:36:21: Warning: Use &lt;$&gt;<br/>
-Found<br/>
-<pre><span class='hs-keyword'>do</span> <span class='hs-varid'>time</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-conid'>Time.getCurrentTime</span>
-   <span class='hs-varid'>todoID</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>nextRandom</span>
-   <span class='hs-varid'>return</span> <span class='hs-varop'>$</span> <span class='hs-conid'>Pending</span> <span class='hs-layout'>(</span><span class='hs-conid'>Content</span> <span class='hs-varid'>inputText</span><span class='hs-layout'>)</span> <span class='hs-varid'>time</span> <span class='hs-varid'>todoID</span></pre>
+<pre><span class='hs-keyword'>do</span> <span class='hs-varid'>allReturn</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>liftIO</span> <span class='hs-conid'>M.allTodos</span>
+   <span class='hs-varid'>return</span> <span class='hs-varid'>allReturn</span></pre>
 Perhaps<br/>
-<pre><span class='hs-keyword'>do</span> <span class='hs-varid'>time</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-conid'>Time.getCurrentTime</span>
-   <span class='hs-conid'>Pending</span> <span class='hs-layout'>(</span><span class='hs-conid'>Content</span> <span class='hs-varid'>inputText</span><span class='hs-layout'>)</span> <span class='hs-varid'>time</span> <span class='hs-varop'>&lt;$&gt;</span> <span class='hs-varid'>nextRandom</span></pre>
+<pre><span class='hs-keyword'>do</span> <span class='hs-varid'>liftIO</span> <span class='hs-conid'>M.allTodos</span></pre>
 
 </div>
 
-<div class="hint0 file2">
-./test/Spec.hs:10:33: Warning: Redundant do<br/>
+<div class="hint0 file1">
+./test/Spec.hs:12:33: Warning: Redundant do<br/>
 Found<br/>
 <pre><span class='hs-keyword'>do</span> <span class='hs-varid'>it</span> <span class='hs-str'>"should return a todo"</span> <span class='hs-varop'>$</span>
      <span class='hs-keyword'>do</span> <span class='hs-keyword'>let</span> <span class='hs-varid'>text</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>pack</span> <span class='hs-str'>"Hello World"</span>
-        <span class='hs-varid'>todo</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>newTodo</span> <span class='hs-varop'>$</span> <span class='hs-varid'>text</span>
-        <span class='hs-keyword'>let</span> <span class='hs-conid'>Content</span> <span class='hs-varid'>inner</span> <span class='hs-keyglyph'>=</span> <span class='hs-sel'>_content</span> <span class='hs-varid'>todo</span>
+        <span class='hs-varid'>todo</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>newTodo</span> <span class='hs-varid'>text</span>
+        <span class='hs-keyword'>let</span> <span class='hs-conid'>Content</span> <span class='hs-varid'>inner</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>P._content</span> <span class='hs-varid'>todo</span>
         <span class='hs-varid'>inner</span> <span class='hs-varop'>`shouldBe`</span> <span class='hs-varid'>text</span></pre>
 Perhaps<br/>
 <pre><span class='hs-definition'>it</span> <span class='hs-str'>"should return a todo"</span> <span class='hs-varop'>$</span>
   <span class='hs-keyword'>do</span> <span class='hs-keyword'>let</span> <span class='hs-varid'>text</span> <span class='hs-keyglyph'>=</span> <span class='hs-varid'>pack</span> <span class='hs-str'>"Hello World"</span>
-     <span class='hs-varid'>todo</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>newTodo</span> <span class='hs-varop'>$</span> <span class='hs-varid'>text</span>
-     <span class='hs-keyword'>let</span> <span class='hs-conid'>Content</span> <span class='hs-varid'>inner</span> <span class='hs-keyglyph'>=</span> <span class='hs-sel'>_content</span> <span class='hs-varid'>todo</span>
+     <span class='hs-varid'>todo</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>newTodo</span> <span class='hs-varid'>text</span>
+     <span class='hs-keyword'>let</span> <span class='hs-conid'>Content</span> <span class='hs-varid'>inner</span> <span class='hs-keyglyph'>=</span> <span class='hs-conid'>P._content</span> <span class='hs-varid'>todo</span>
      <span class='hs-varid'>inner</span> <span class='hs-varop'>`shouldBe`</span> <span class='hs-varid'>text</span></pre>
 
 </div>
 
-<div class="hint3 file2">
-./test/Spec.hs:13:15: Suggestion: Redundant $<br/>
-Found<br/>
-<pre><span class='hs-definition'>newTodo</span> <span class='hs-varop'>$</span> <span class='hs-varid'>text</span></pre>
-Perhaps<br/>
-<pre><span class='hs-definition'>newTodo</span> <span class='hs-varid'>text</span></pre>
-
-</div>
-
-<div class="hint0 file2">
-./test/Spec.hs:16:34: Warning: Redundant do<br/>
+<div class="hint0 file1">
+./test/Spec.hs:18:34: Warning: Redundant do<br/>
 Found<br/>
 <pre><span class='hs-keyword'>do</span> <span class='hs-varid'>it</span> <span class='hs-str'>"should create a completed todo"</span> <span class='hs-varop'>$</span>
      <span class='hs-keyword'>do</span> <span class='hs-varid'>todo</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>newTodo</span> <span class='hs-varop'>$</span> <span class='hs-varid'>pack</span> <span class='hs-str'>"foo"</span>
