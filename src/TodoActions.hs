@@ -2,7 +2,7 @@
 
 module TodoActions (singleTodo, allTodos, newTodo, completePendingTodo) where
 
-import           Data.Either     (isLeft, fromLeft, fromRight, partitionEithers)
+import           Data.Either     (fromLeft, fromRight, isLeft, partitionEithers)
 import           Data.Maybe      (catMaybes)
 import qualified Data.Text       as T (Text)
 import qualified Data.Time.Clock as Time
@@ -40,9 +40,9 @@ singleTodo (M.TodoID uuid) = do
 intoGeneralTodo :: Dao.Todo -> Maybe M.GeneralTodo
 intoGeneralTodo x = do
   let y = toEither x
-  case isLeft y of
-    True  -> M.PendingTodo <$> fromLeft Nothing y
-    False -> M.CompletedTodo <$> fromRight Nothing y
+  if isLeft y
+    then M.PendingTodo <$> fromLeft Nothing y
+    else M.CompletedTodo <$> fromRight Nothing y
 
 toEither :: Dao.Todo -> Either (Maybe M.Pending) (Maybe M.Completed)
 toEither todo = case todo of
