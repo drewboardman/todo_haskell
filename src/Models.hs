@@ -9,11 +9,10 @@ module Models
   ( AllTodos(AllTodos)
   , Todo(..)
   , Content(..)
-  , Pending
-  , GeneralTodo(CompletedTodo, PendingTodo)
-  , Completed
   , TodoID(TodoID)
   , CompletedTime(CompletedTime)
+  , Pending(Pending)
+  , Completed(Completed)
   ) where
 
 import           Data.Aeson      (ToJSON, object, toJSON, (.=))
@@ -26,18 +25,23 @@ newtype TodoID = TodoID Uuid.UUID deriving (Eq, Show, Generic)
 newtype Content = Content T.Text deriving (Show, Eq, Generic)
 newtype CompletedTime = CompletedTime Time.UTCTime deriving (Show, Eq, Generic)
 
-data Todo completedTime = Todo { _content    :: Content
-                               , _createdAt  :: Time.UTCTime
-                               , _finishedAt :: completedTime
-                               , _id         :: TodoID } deriving (Eq, Show, Generic)
+data Todo = PendingTodo Pending | CompletedTodo Completed deriving (Eq, Show, Generic)
+
+data Pending = Pending { _content     :: Content
+                         , _createdAt :: Time.UTCTime
+                         , _id        :: TodoID } deriving (Eq, Show, Generic)
+
+data Completed = Completed { _content    :: Content
+                           , _createdAt  :: Time.UTCTime
+                           , _finishedAt :: CompletedTime
+                           , _id         :: TodoID } deriving (Eq, Show, Generic)
 
 data AllTodos = AllTodos { _pendings   :: [Pending]
                          , _completeds :: [Completed] } deriving (Eq, Show, Generic)
 
-data GeneralTodo = PendingTodo Pending | CompletedTodo Completed
-
-type Pending = Todo ()
-type Completed = Todo CompletedTime
+instance ToJSON Todo where
+  toJSON (PendingTodo p)   = toJSON p
+  toJSON (CompletedTodo c) = toJSON c
 
 instance ToJSON AllTodos where
   toJSON (AllTodos ps cs) =
@@ -45,14 +49,14 @@ instance ToJSON AllTodos where
            , "completed_todos" .= cs ]
 
 instance ToJSON Pending where
-  toJSON (Todo c created _ uuid) =
+  toJSON (Pending c created uuid) =
     object [ "content" .= c
            , "created_at" .= created
            , "id" .= uuid ]
 
 instance ToJSON Completed where
-  toJSON (Todo c created finished uuid) =
-    object [ "content" .= c
+  toJSON (Completed content created finished uuid) =
+    object [ "content" .= content
            , "created_at" .= created
            , "finished_at" .= finished
            , "id" .= uuid ]

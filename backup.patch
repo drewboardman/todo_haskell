@@ -1,0 +1,208 @@
+diff --git a/report.html b/report.html
+index a9ca15c..1b62837 100644
+--- a/report.html
++++ b/report.html
+@@ -162,13 +162,11 @@ document.body.className = "script";
+ <p><a class="all" href="javascript:show('')">All hints</a></p>
+ <ul>
+ <li><a id="hint0" href="javascript:show('hint0')">Warning: Redundant do (2)</a></li>
+-<li><a id="hint1" href="javascript:show('hint1')">Warning: Redundant return (1)</a></li>
+ </ul>
+ 
+ <p><a class="all" href="javascript:show('')">All files</a></p>
+ <ul>
+-<li><a id="file0" href="javascript:show('file0')">./src/controllers/TodoController.hs (1)</a></li>
+-<li><a id="file1" href="javascript:show('file1')">./test/Spec.hs (2)</a></li>
++<li><a id="file0" href="javascript:show('file0')">./test/Spec.hs (2)</a></li>
+ </ul>
+ 
+ </div>
+@@ -179,17 +177,7 @@ v2.1.11
+     - a tool to suggest improvements to your Haskell code.
+ </p>
+ 
+-<div class="hint1 file0">
+-./src/controllers/TodoController.hs:22:14: Warning: Redundant return<br/>
+-Found<br/>
+-<pre><span class='hs-keyword'>do</span> <span class='hs-varid'>allReturn</span> <span class='hs-keyglyph'>&lt;-</span> <span class='hs-varid'>liftIO</span> <span class='hs-conid'>M.allTodos</span>
+-   <span class='hs-varid'>return</span> <span class='hs-varid'>allReturn</span></pre>
+-Perhaps<br/>
+-<pre><span class='hs-keyword'>do</span> <span class='hs-varid'>liftIO</span> <span class='hs-conid'>M.allTodos</span></pre>
+-
+-</div>
+-
+-<div class="hint0 file1">
++<div class="hint0 file0">
+ ./test/Spec.hs:12:33: Warning: Redundant do<br/>
+ Found<br/>
+ <pre><span class='hs-keyword'>do</span> <span class='hs-varid'>it</span> <span class='hs-str'>"should return a todo"</span> <span class='hs-varop'>$</span>
+@@ -206,7 +194,7 @@ Perhaps<br/>
+ 
+ </div>
+ 
+-<div class="hint0 file1">
++<div class="hint0 file0">
+ ./test/Spec.hs:18:34: Warning: Redundant do<br/>
+ Found<br/>
+ <pre><span class='hs-keyword'>do</span> <span class='hs-varid'>it</span> <span class='hs-str'>"should create a completed todo"</span> <span class='hs-varop'>$</span>
+diff --git a/src/Models.hs b/src/Models.hs
+index 49f184b..5254f5d 100644
+--- a/src/Models.hs
++++ b/src/Models.hs
+@@ -9,11 +9,10 @@ module Models
+   ( AllTodos(AllTodos)
+   , Todo(..)
+   , Content(..)
+-  , Pending
+-  , GeneralTodo(CompletedTodo, PendingTodo)
+-  , Completed
+   , TodoID(TodoID)
+   , CompletedTime(CompletedTime)
++  , Pending(Pending)
++  , Completed(Completed)
+   ) where
+ 
+ import           Data.Aeson      (ToJSON, object, toJSON, (.=))
+@@ -26,18 +25,23 @@ newtype TodoID = TodoID Uuid.UUID deriving (Eq, Show, Generic)
+ newtype Content = Content T.Text deriving (Show, Eq, Generic)
+ newtype CompletedTime = CompletedTime Time.UTCTime deriving (Show, Eq, Generic)
+ 
+-data Todo completedTime = Todo { _content    :: Content
+-                               , _createdAt  :: Time.UTCTime
+-                               , _finishedAt :: completedTime
+-                               , _id         :: TodoID } deriving (Eq, Show, Generic)
++data Todo = PendingTodo Pending | CompletedTodo Completed deriving (Eq, Show, Generic)
++
++data Pending = Pending { _content     :: Content
++                         , _createdAt :: Time.UTCTime
++                         , _id        :: TodoID } deriving (Eq, Show, Generic)
++
++data Completed = Completed { _content    :: Content
++                           , _createdAt  :: Time.UTCTime
++                           , _finishedAt :: CompletedTime
++                           , _id         :: TodoID } deriving (Eq, Show, Generic)
+ 
+ data AllTodos = AllTodos { _pendings   :: [Pending]
+                          , _completeds :: [Completed] } deriving (Eq, Show, Generic)
+ 
+-data GeneralTodo = PendingTodo Pending | CompletedTodo Completed
+-
+-type Pending = Todo ()
+-type Completed = Todo CompletedTime
++instance ToJSON Todo where
++  toJSON (PendingTodo p)   = toJSON p
++  toJSON (CompletedTodo c) = toJSON c
+ 
+ instance ToJSON AllTodos where
+   toJSON (AllTodos ps cs) =
+@@ -45,14 +49,14 @@ instance ToJSON AllTodos where
+            , "completed_todos" .= cs ]
+ 
+ instance ToJSON Pending where
+-  toJSON (Todo c created _ uuid) =
++  toJSON (Pending c created uuid) =
+     object [ "content" .= c
+            , "created_at" .= created
+            , "id" .= uuid ]
+ 
+ instance ToJSON Completed where
+-  toJSON (Todo c created finished uuid) =
+-    object [ "content" .= c
++  toJSON (Completed content created finished uuid) =
++    object [ "content" .= content
+            , "created_at" .= created
+            , "finished_at" .= finished
+            , "id" .= uuid ]
+diff --git a/src/TodoActions.hs b/src/TodoActions.hs
+index 4b5d76a..316b702 100644
+--- a/src/TodoActions.hs
++++ b/src/TodoActions.hs
+@@ -2,62 +2,65 @@
+ 
+ module TodoActions (singleTodo, allTodos, newTodo, completePendingTodo) where
+ 
+-import           Data.Either     (fromLeft, fromRight, isLeft, partitionEithers)
++import           Data.Either     (partitionEithers)
+ import           Data.Maybe      (catMaybes)
+ import qualified Data.Text       as T (Text)
+ import qualified Data.Time.Clock as Time
+ import qualified Data.UUID       as Uuid
+ import           Data.UUID.V4    (nextRandom)
+-import qualified Models          as M (AllTodos (AllTodos), Completed,
++import qualified Models          as M (AllTodos (AllTodos),
++                                       Completed (Completed),
+                                        CompletedTime (CompletedTime),
+-                                       Content (Content),
+-                                       GeneralTodo (CompletedTodo, PendingTodo),
+-                                       Pending, Todo (Todo), TodoID (TodoID))
++                                       Content (Content), Pending (Pending),
++                                       Todo (CompletedTodo, PendingTodo),
++                                       TodoID (TodoID))
+ import qualified TodoDao         as Dao (Todo, TodoT (Todo), allTodos,
+                                          singleTodo)
+ 
+ newTodo :: T.Text -> IO M.Pending
+ newTodo inputText = do
+   time <- Time.getCurrentTime
+-  M.Todo (M.Content inputText) time () . M.TodoID <$> nextRandom
++  M.Pending (M.Content inputText) time . M.TodoID <$> nextRandom
+ 
+ completePendingTodo :: M.Pending -> IO M.Completed
+-completePendingTodo (M.Todo content created _ todoID) = do
++completePendingTodo (M.Pending content created todoID) = do
+   time <- Time.getCurrentTime
+-  return $ M.Todo content created (M.CompletedTime time) todoID
++  return $ M.Completed content created (M.CompletedTime time) todoID
+ 
+ allTodos :: IO M.AllTodos
+ allTodos = do
+   all' <- Dao.allTodos
+-  let partitioned = partitionEithers $ map toEither all'
++  let partitioned = partitionEithers $ map eitherFromDaoTodo all'
+   return $ M.AllTodos (catMaybes $ fst partitioned) (catMaybes $ snd partitioned)
+ 
+-singleTodo :: M.TodoID -> IO (Maybe M.GeneralTodo)
++singleTodo :: M.TodoID -> IO (Maybe M.Todo)
+ singleTodo (M.TodoID uuid) = do
+   maybeFetched :: Maybe Dao.Todo <- Dao.singleTodo $ Uuid.toText uuid
+-  pure (intoGeneralTodo =<< maybeFetched)
++  pure (toTodoM =<< maybeFetched)
+ 
+-intoGeneralTodo :: Dao.Todo -> Maybe M.GeneralTodo
+-intoGeneralTodo x = do
+-  let y = toEither x
+-  if isLeft y
+-    then M.PendingTodo <$> fromLeft Nothing y
+-    else M.CompletedTodo <$> fromRight Nothing y
++toTodoM :: Dao.Todo -> Maybe M.Todo
++toTodoM x = todoFromEither $ eitherFromDaoTodo x
+ 
+-toEither :: Dao.Todo -> Either (Maybe M.Pending) (Maybe M.Completed)
+-toEither todo = case todo of
++todoFromEither :: Either (Maybe M.Pending) (Maybe M.Completed) -> Maybe M.Todo
++todoFromEither (Left (Just pending))    = Just $ M.PendingTodo pending
++todoFromEither (Left Nothing)           = Nothing
++todoFromEither (Right (Just completed)) = Just $ M.CompletedTodo completed
++todoFromEither (Right Nothing)          = Nothing
++
++eitherFromDaoTodo :: Dao.Todo -> Either (Maybe M.Pending) (Maybe M.Completed)
++eitherFromDaoTodo todo = case todo of
+     (Dao.Todo _ _ _ Nothing)  -> Left (daoPendingToModels todo)
+     (Dao.Todo _ _ _ (Just _)) -> Right (daoCompletedToModels todo)
+ 
+ daoPendingToModels :: Dao.Todo -> Maybe M.Pending
+ daoPendingToModels (Dao.Todo id' content created _) =
+   case Uuid.fromText id' of
+-    Just uuid -> Just $ M.Todo (M.Content content) created () (M.TodoID uuid)
++    Just uuid -> Just $ M.Pending (M.Content content) created (M.TodoID uuid)
+     Nothing   -> Nothing
+ 
+ daoCompletedToModels :: Dao.Todo -> Maybe M.Completed
+-daoCompletedToModels (Dao.Todo id' text created maybeFinished) =
++daoCompletedToModels (Dao.Todo id' content created maybeFinished) =
+   case (Uuid.fromText id', maybeFinished) of
+-    (Just uuid, Just finished) ->
+-        Just $ M.Todo (M.Content text) created (M.CompletedTime finished) (M.TodoID uuid)
++    (Just uuid, Just finished) -> Just $
++        M.Completed (M.Content content) created (M.CompletedTime finished) (M.TodoID uuid)
+     (_, _) -> Nothing
