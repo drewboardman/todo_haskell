@@ -38,6 +38,7 @@ dependencies:
 - aeson
 - wai-logger
 - lens
+- mtl
 
 library:
   source-dirs:

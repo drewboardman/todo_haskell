@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 757e8ee9ce4d96106c0e8d96ddf5e6e4720973710cca6eb9f9930bf7098430c0
+-- hash: da3be86dcc4c6e9906b22b2044e8c7319108196b807b654c152d9b08c5055f2d
 
 name:           todo-haskell
 version:        0.1.0.0
@@ -48,6 +48,7 @@ library
     , free
     , hspec
     , lens
+    , mtl
     , scotty
     , servant-server
     , sqlite-simple
@@ -74,6 +75,7 @@ executable todo-haskell-exe
     , free
     , hspec
     , lens
+    , mtl
     , scotty
     , servant-server
     , sqlite-simple
@@ -102,6 +104,7 @@ test-suite todo-haskell-test
     , free
     , hspec
     , lens
+    , mtl
     , scotty
     , servant-server
     , sqlite-simple
