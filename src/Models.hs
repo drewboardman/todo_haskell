@@ -15,14 +15,14 @@ module Models
   , Completed(Completed)
   ) where
 
-import           Data.Aeson      (ToJSON, object, toJSON, (.=))
+import           Data.Aeson      (FromJSON, ToJSON, object, toJSON, (.=))
 import qualified Data.Text       as T
 import qualified Data.Time.Clock as Time
 import qualified Data.UUID       as Uuid
 import           GHC.Generics    (Generic)
 
 newtype TodoID = TodoID Uuid.UUID deriving (Eq, Show, Generic)
-newtype Content = Content T.Text deriving (Show, Eq, Generic)
+newtype Content = Content { contentText :: T.Text } deriving (Show, Eq, Generic)
 newtype CompletedTime = CompletedTime Time.UTCTime deriving (Show, Eq, Generic)
 
 data Todo = PendingTodo Pending | CompletedTodo Completed deriving (Eq, Show, Generic)
@@ -64,3 +64,4 @@ instance ToJSON Completed where
 instance ToJSON TodoID
 instance ToJSON CompletedTime
 instance ToJSON Content
+instance FromJSON Content

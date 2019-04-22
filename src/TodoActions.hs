@@ -1,26 +1,31 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module TodoActions (singleTodo, allTodos, newTodo, completePendingTodo) where
+module TodoActions (getSingleTodo, allTodos, newTodo, completePendingTodo) where
 
-import           Data.Either     (partitionEithers)
-import           Data.Maybe      (catMaybes)
-import qualified Data.Text       as T (Text)
-import qualified Data.Time.Clock as Time
-import qualified Data.UUID       as Uuid
-import           Data.UUID.V4    (nextRandom)
-import qualified Models          as M (AllTodos (AllTodos),
-                                       Completed (Completed),
-                                       CompletedTime (CompletedTime),
-                                       Content (Content), Pending (Pending),
-                                       Todo (CompletedTodo, PendingTodo),
-                                       TodoID (TodoID))
-import qualified TodoDao         as Dao (Todo, TodoT (Todo), allTodos,
-                                         singleTodo)
+import           Control.Monad.IO.Class (liftIO)
+import           Data.Either            (partitionEithers)
+import           Data.Maybe             (catMaybes)
+import qualified Data.Time.Clock        as Time
+import qualified Data.UUID              as Uuid
+import           Data.UUID.V4           (nextRandom)
+import qualified Models                 as M (AllTodos (AllTodos),
+                                              Completed (Completed),
+                                              CompletedTime (CompletedTime),
+                                              Content (Content),
+                                              Pending (Pending),
+                                              Todo (CompletedTodo, PendingTodo),
+                                              TodoID (TodoID))
+import qualified TodoDao                as Dao (Todo, TodoT (Todo), allTodos,
+                                                getSingleTodo,
+                                                insertPendingTodo)
 
-newTodo :: T.Text -> IO M.Pending
-newTodo inputText = do
+newTodo :: M.Content -> IO (Maybe M.Pending)
+newTodo (M.Content contentText) = do
   time <- Time.getCurrentTime
-  M.Pending (M.Content inputText) time . M.TodoID <$> nextRandom
+  uuid <- nextRandom
+  -- possibly unecessary to RE-convert to a pending?
+  result <- liftIO (Dao.insertPendingTodo contentText time uuid)
+  pure $ daoPendingToModels =<< result
 
 completePendingTodo :: M.Pending -> IO M.Completed
 completePendingTodo (M.Pending content created todoID) = do
@@ -33,9 +38,9 @@ allTodos = do
   let partitioned = partitionEithers $ map eitherFromDaoTodo all'
   return $ M.AllTodos (catMaybes $ fst partitioned) (catMaybes $ snd partitioned)
 
-singleTodo :: M.TodoID -> IO (Maybe M.Todo)
-singleTodo (M.TodoID uuid) = do
-  maybeFetched :: Maybe Dao.Todo <- Dao.singleTodo $ Uuid.toText uuid
+getSingleTodo :: M.TodoID -> IO (Maybe M.Todo)
+getSingleTodo (M.TodoID uuid) = do
+  maybeFetched :: Maybe Dao.Todo <- Dao.getSingleTodo $ Uuid.toText uuid
   pure (toTodoM =<< maybeFetched)
 
 toTodoM :: Dao.Todo -> Maybe M.Todo

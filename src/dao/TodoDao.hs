@@ -13,25 +13,36 @@ module TodoDao
   , _todos
   , todoDb
   , allTodos
-  , singleTodo
+  , getSingleTodo
   , Todo
+  , insertPendingTodo
   )
+
 where
 
-import           Control.Lens           ((^.))
-import           Data.Maybe             (listToMaybe)
-import qualified Data.Text              as T
-import           Data.Time.Clock        (UTCTime)
-import           Database.Beam          (Beamable, Columnar, Database,
-                                         DatabaseSettings, Generic, Identity,
-                                         LensFor (LensFor), PrimaryKey,
-                                         Table (PrimaryKey, primaryKey),
-                                         TableEntity, all_, defaultDbSettings,
-                                         guard_, runSelectReturningList, select,
-                                         val_, (==.))
-import           Database.Beam.Schema   (tableLenses)
-import           Database.Beam.Sqlite   (Sqlite, SqliteM, runBeamSqlite)
-import           Database.SQLite.Simple (open)
+import           Control.Lens                             ((^.))
+import           Data.Maybe                               (listToMaybe)
+import qualified Data.Text                                as T
+import           Data.Time.Clock                          (UTCTime)
+import           Data.UUID                                (UUID, toText)
+import           Database.Beam                            (Beamable, Columnar,
+                                                           Database,
+                                                           DatabaseSettings,
+                                                           Generic, Identity,
+                                                           LensFor (LensFor),
+                                                           PrimaryKey,
+                                                           Table (PrimaryKey, primaryKey),
+                                                           TableEntity, all_,
+                                                           defaultDbSettings,
+                                                           guard_, insert,
+                                                           insertValues,
+                                                           runSelectReturningList,
+                                                           select, val_, (==.))
+import qualified Database.Beam.Backend.SQL.BeamExtensions as Extensions (runInsertReturningList)
+import           Database.Beam.Schema                     (tableLenses)
+import           Database.Beam.Sqlite                     (Sqlite, SqliteM,
+                                                           runBeamSqlite)
+import           Database.SQLite.Simple                   (open)
 
 type Todo = TodoT Identity
 
@@ -59,8 +70,8 @@ allTodos = do
   conn <- open "todo1.db"
   runBeamSqlite conn runSelectAll
 
-singleTodo :: T.Text -> IO (Maybe Todo)
-singleTodo uuid = do
+getSingleTodo :: T.Text -> IO (Maybe Todo)
+getSingleTodo uuid = do
   conn <- open "todo1.db"
   let resultAsList :: IO [Todo] = runBeamSqlite conn $ runSelectSingleUuid uuid
   fmap listToMaybe resultAsList
@@ -79,3 +90,13 @@ runSelectSingleUuid uuid =
     todo <- all_ $ _todos todoDb
     guard_ $ (todo ^. todoId) ==. val_ uuid
     return todo
+
+insertPendingTodo :: T.Text -> UTCTime -> UUID -> IO (Maybe Todo)
+insertPendingTodo content created uuid = do
+  let myId = toText uuid
+  conn <- open "todo1.db"
+  let resultAsList = runBeamSqlite conn $
+        Extensions.runInsertReturningList $
+        insert (_todos todoDb) $
+        insertValues [ Todo myId content created Nothing ]
+  fmap listToMaybe resultAsList
