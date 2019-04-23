@@ -11,10 +11,9 @@ CREATE TABLE todos (id VARCHAR NOT NULL, content VARCHAR NOT NULL, created_at TE
 
 Future goals
 ---------
-* Practice `Monoid` with these Todo types
-  - maybe make a Todo monoid and implement `mappend`
-  - could use it to combine similar todos or something?
-  - might be tricky bc of the database stuff
+* Complete a pending todo
+* Update a Pending Todo
+* Delete a Todo
 
 Questions
 =========

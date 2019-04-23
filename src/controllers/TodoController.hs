@@ -44,7 +44,6 @@ todoServer = todos :<|> todo :<|> newTodo where
         Just singleTodo -> return singleTodo
         Nothing         -> throwError err404
 
-    -- how to validate Content?
     newTodo :: M.Content -> Handler M.Pending
     newTodo content = do
       maybeCreated <- liftIO $ Actions.newTodo content

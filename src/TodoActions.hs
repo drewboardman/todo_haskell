@@ -23,7 +23,6 @@ newTodo :: M.Content -> IO (Maybe M.Pending)
 newTodo (M.Content contentText) = do
   time <- Time.getCurrentTime
   uuid <- nextRandom
-  -- possibly unecessary to RE-convert to a pending?
   result <- liftIO (Dao.insertPendingTodo contentText time uuid)
   pure $ daoPendingToModels =<< result
 
