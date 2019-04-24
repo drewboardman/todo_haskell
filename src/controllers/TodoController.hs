@@ -8,13 +8,14 @@ import           Control.Monad.Except   (join, throwError)
 import           Control.Monad.IO.Class (liftIO)
 import qualified Data.UUID              as Uuid
 import qualified Models                 as M (AllTodos, Content, Pending, Todo,
-                                              TodoID (TodoID))
+                                              TodoID (TodoID),
+                                              TodoUpdateRequest (TodoUpdateRequest))
 import           Servant                ((:<|>) ((:<|>)), (:>), Application,
                                          Get, Handler, JSON, Post,
                                          Proxy (Proxy), QueryParam, ReqBody,
                                          Server, err404, serve)
 import qualified TodoActions            as Actions (allTodos, getSingleTodo,
-                                                    newTodo)
+                                                    newTodo, updateTodoContent)
 
 -- :<|> "marketing" :> ReqBody '[JSON] ClientInfo :> Post '[JSON] Email
 type TodoAPI =
@@ -24,6 +25,8 @@ type TodoAPI =
   :<|> "todo" :> QueryParam "uuid" Uuid.UUID :> Get '[JSON] M.Todo
   -- POST: /todo/new -- creates pending Todo
   :<|> "todo" :> "new" :> ReqBody '[JSON] M.Content :> Post '[JSON] M.Pending
+  -- POST: /todo/update -- creates pending Todo
+  :<|> "todo" :> "update" :> ReqBody '[JSON] M.TodoUpdateRequest :> Post '[JSON] M.Todo
 
 app :: Application
 app = serve todoAPI todoServer
@@ -32,7 +35,7 @@ todoAPI :: Proxy TodoAPI
 todoAPI = Proxy
 
 todoServer :: Server TodoAPI
-todoServer = todos :<|> todo :<|> newTodo where
+todoServer = todos :<|> todo :<|> newTodo :<|> update where
 
     todos :: Handler M.AllTodos
     todos = liftIO Actions.allTodos
@@ -49,4 +52,11 @@ todoServer = todos :<|> todo :<|> newTodo where
       maybeCreated <- liftIO $ Actions.newTodo content
       case maybeCreated of
         Just pending -> pure pending
+        Nothing      -> throwError err404
+
+    update :: M.TodoUpdateRequest -> Handler M.Todo
+    update (M.TodoUpdateRequest todoID content)  = do
+      maybeUpdated <- liftIO $ Actions.updateTodoContent todoID content
+      case maybeUpdated of
+        Just updated -> pure updated
         Nothing      -> throwError err404

@@ -39,6 +39,7 @@ dependencies:
 - wai-logger
 - lens
 - mtl
+- monad-logger
 
 library:
   source-dirs:

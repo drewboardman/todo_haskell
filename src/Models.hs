@@ -13,6 +13,7 @@ module Models
   , CompletedTime(CompletedTime)
   , Pending(Pending)
   , Completed(Completed)
+  , TodoUpdateRequest(TodoUpdateRequest)
   ) where
 
 import           Data.Aeson      (FromJSON, ToJSON, object, toJSON, (.=))
@@ -22,14 +23,15 @@ import qualified Data.UUID       as Uuid
 import           GHC.Generics    (Generic)
 
 newtype TodoID = TodoID Uuid.UUID deriving (Eq, Show, Generic)
-newtype Content = Content { contentText :: T.Text } deriving (Show, Eq, Generic)
 newtype CompletedTime = CompletedTime Time.UTCTime deriving (Show, Eq, Generic)
 
 data Todo = PendingTodo Pending | CompletedTodo Completed deriving (Eq, Show, Generic)
 
-data Pending = Pending { _content     :: Content
-                         , _createdAt :: Time.UTCTime
-                         , _id        :: TodoID } deriving (Eq, Show, Generic)
+newtype Content = Content { contentText :: T.Text } deriving (Show, Eq, Generic)
+
+data Pending = Pending { _content   :: Content
+                       , _createdAt :: Time.UTCTime
+                       , _id        :: TodoID } deriving (Eq, Show, Generic)
 
 data Completed = Completed { _content    :: Content
                            , _createdAt  :: Time.UTCTime
@@ -38,6 +40,9 @@ data Completed = Completed { _content    :: Content
 
 data AllTodos = AllTodos { _pendings   :: [Pending]
                          , _completeds :: [Completed] } deriving (Eq, Show, Generic)
+
+data TodoUpdateRequest = TodoUpdateRequest { _uuid    :: TodoID
+                                           , _content :: Content } deriving (Eq, Show, Generic)
 
 instance ToJSON Todo where
   toJSON (PendingTodo p)   = toJSON p
@@ -62,6 +67,9 @@ instance ToJSON Completed where
            , "id" .= uuid ]
 
 instance ToJSON TodoID
+instance FromJSON TodoID
 instance ToJSON CompletedTime
 instance ToJSON Content
 instance FromJSON Content
+instance FromJSON TodoUpdateRequest
+instance ToJSON TodoUpdateRequest

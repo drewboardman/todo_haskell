@@ -1,6 +1,11 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module TodoActions (getSingleTodo, allTodos, newTodo, completePendingTodo) where
+module TodoActions ( updateTodoContent
+                   , getSingleTodo
+                   , allTodos
+                   , newTodo
+                   , completePendingTodo
+                   ) where
 
 import           Control.Monad.IO.Class (liftIO)
 import           Data.Either            (partitionEithers)
@@ -16,8 +21,8 @@ import qualified Models                 as M (AllTodos (AllTodos),
                                               Todo (CompletedTodo, PendingTodo),
                                               TodoID (TodoID))
 import qualified TodoDao                as Dao (Todo, TodoT (Todo), allTodos,
-                                                getSingleTodo,
-                                                insertPendingTodo)
+                                                insertPendingTodo,
+                                                selectSingleTodo, updateTodo)
 
 newTodo :: M.Content -> IO (Maybe M.Pending)
 newTodo (M.Content contentText) = do
@@ -39,8 +44,13 @@ allTodos = do
 
 getSingleTodo :: M.TodoID -> IO (Maybe M.Todo)
 getSingleTodo (M.TodoID uuid) = do
-  maybeFetched :: Maybe Dao.Todo <- Dao.getSingleTodo $ Uuid.toText uuid
+  maybeFetched :: Maybe Dao.Todo <- Dao.selectSingleTodo uuid
   pure (toTodoM =<< maybeFetched)
+
+updateTodoContent :: M.TodoID -> M.Content -> IO (Maybe M.Todo)
+updateTodoContent (M.TodoID uuid) (M.Content contentText) = do
+  maybeUpdated :: Maybe Dao.Todo <- Dao.updateTodo uuid contentText
+  pure (toTodoM =<< maybeUpdated)
 
 toTodoM :: Dao.Todo -> Maybe M.Todo
 toTodoM x = todoFromEither $ eitherFromDaoTodo x
