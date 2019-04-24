@@ -21,6 +21,7 @@ import qualified Models                 as M (AllTodos (AllTodos),
                                               Todo (CompletedTodo, PendingTodo),
                                               TodoID (TodoID))
 import qualified TodoDao                as Dao (Todo, TodoT (Todo), allTodos,
+                                                completePendingTodo,
                                                 insertPendingTodo,
                                                 selectSingleTodo, updateTodo)
 
@@ -30,11 +31,6 @@ newTodo (M.Content contentText) = do
   uuid <- nextRandom
   result <- liftIO (Dao.insertPendingTodo contentText time uuid)
   pure $ daoPendingToModels =<< result
-
-completePendingTodo :: M.Pending -> IO M.Completed
-completePendingTodo (M.Pending content created todoID) = do
-  time <- Time.getCurrentTime
-  return $ M.Completed content created (M.CompletedTime time) todoID
 
 allTodos :: IO M.AllTodos
 allTodos = do
@@ -51,6 +47,11 @@ updateTodoContent :: M.TodoID -> M.Content -> IO (Maybe M.Todo)
 updateTodoContent (M.TodoID uuid) (M.Content contentText) = do
   maybeUpdated :: Maybe Dao.Todo <- Dao.updateTodo uuid contentText
   pure (toTodoM =<< maybeUpdated)
+
+completePendingTodo :: M.TodoID -> IO (Maybe M.Completed)
+completePendingTodo (M.TodoID uuid) = do
+  maybeCompleted <- liftIO (Dao.completePendingTodo uuid)
+  pure $ daoCompletedToModels =<< maybeCompleted
 
 toTodoM :: Dao.Todo -> Maybe M.Todo
 toTodoM x = todoFromEither $ eitherFromDaoTodo x

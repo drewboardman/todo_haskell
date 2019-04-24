@@ -12,6 +12,7 @@ module TodoDao ( TodoT(Todo)
                , _todos
                , todoDb
                , allTodos
+               , completePendingTodo
                , Todo
                , insertPendingTodo
                , selectSingleTodo
@@ -21,6 +22,7 @@ module TodoDao ( TodoT(Todo)
 import           Data.Maybe                               (listToMaybe)
 import qualified Data.Text                                as T
 import           Data.Time.Clock                          (UTCTime)
+import qualified Data.Time.Clock                          as Time
 import           Data.UUID                                (UUID, toText)
 import           Database.Beam                            (Beamable, Columnar,
                                                            Database,
@@ -99,3 +101,13 @@ selectSingleTodo uuid = do
   runBeamSqlite conn $
     runSelectReturningOne $
     lookup_ (_todos todoDb) (TodoTableID id')
+
+completePendingTodo :: UUID -> IO (Maybe Todo)
+completePendingTodo uuid = do
+  conn <- open "todo1.db"
+  Just todo <- selectSingleTodo uuid
+  time <- Time.getCurrentTime
+  runBeamSqlite conn $ runUpdate $
+    save (_todos todoDb)
+    (todo { _todoFinishedAt = pure time })
+  selectSingleTodo uuid

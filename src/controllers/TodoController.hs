@@ -4,29 +4,33 @@
 
 module TodoController (app) where
 
-import           Control.Monad.Except   (join, throwError)
+import           Control.Monad.Except   (throwError)
 import           Control.Monad.IO.Class (liftIO)
 import qualified Data.UUID              as Uuid
-import qualified Models                 as M (AllTodos, Content, Pending, Todo,
-                                              TodoID (TodoID),
+import qualified Models                 as M (AllTodos, Completed, Content,
+                                              Pending, Todo, TodoID (TodoID),
                                               TodoUpdateRequest (TodoUpdateRequest))
 import           Servant                ((:<|>) ((:<|>)), (:>), Application,
                                          Get, Handler, JSON, Post,
-                                         Proxy (Proxy), QueryParam, ReqBody,
-                                         Server, err404, serve)
-import qualified TodoActions            as Actions (allTodos, getSingleTodo,
-                                                    newTodo, updateTodoContent)
+                                         Proxy (Proxy), Put, QueryParam,
+                                         ReqBody, Server, err404, serve)
+import qualified TodoActions            as Actions (allTodos,
+                                                    completePendingTodo,
+                                                    getSingleTodo, newTodo,
+                                                    updateTodoContent)
 
 -- :<|> "marketing" :> ReqBody '[JSON] ClientInfo :> Post '[JSON] Email
 type TodoAPI =
   -- GET: /todos/all -- returns all Todos
   "todos" :> "all" :> Get '[JSON] M.AllTodos
   -- GET: /todo/:uuid -- returns single Todo
-  :<|> "todo" :> QueryParam "uuid" Uuid.UUID :> Get '[JSON] M.Todo
+  :<|> "todo" :> QueryParam "uuid" Uuid.UUID :> Get '[JSON] M.Todo -- change to TodoID
   -- POST: /todo/new -- creates pending Todo
   :<|> "todo" :> "new" :> ReqBody '[JSON] M.Content :> Post '[JSON] M.Pending
-  -- POST: /todo/update -- creates pending Todo
+  -- POST: /todo/update -- updates any Todo
   :<|> "todo" :> "update" :> ReqBody '[JSON] M.TodoUpdateRequest :> Post '[JSON] M.Todo
+  -- PUT: /todo/complete/:uuid -- completed a Todo
+  :<|> "todo" :> "complete" :> QueryParam "uuid" Uuid.UUID :> Put '[JSON] M.Completed
 
 app :: Application
 app = serve todoAPI todoServer
@@ -35,15 +39,16 @@ todoAPI :: Proxy TodoAPI
 todoAPI = Proxy
 
 todoServer :: Server TodoAPI
-todoServer = todos :<|> todo :<|> newTodo :<|> update where
+todoServer = todos :<|> todo :<|> newTodo :<|> update :<|> complete where
 
     todos :: Handler M.AllTodos
     todos = liftIO Actions.allTodos
 
     todo :: Maybe Uuid.UUID -> Handler M.Todo
-    todo uuid = do
-      maybeTodo <- liftIO $ traverse (Actions.getSingleTodo . M.TodoID) uuid
-      case join maybeTodo of
+    todo Nothing = throwError err404
+    todo (Just uuid) = do
+      maybeTodo <- liftIO $ Actions.getSingleTodo $ M.TodoID uuid
+      case maybeTodo of
         Just singleTodo -> return singleTodo
         Nothing         -> throwError err404
 
@@ -60,3 +65,11 @@ todoServer = todos :<|> todo :<|> newTodo :<|> update where
       case maybeUpdated of
         Just updated -> pure updated
         Nothing      -> throwError err404
+
+    complete :: Maybe Uuid.UUID -> Handler M.Completed
+    complete Nothing = throwError err404
+    complete (Just uuid) = do
+      maybeCompleted <- liftIO $ Actions.completePendingTodo $ M.TodoID uuid
+      case maybeCompleted of
+        Just completed -> pure completed
+        Nothing        -> throwError err404
