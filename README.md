@@ -16,9 +16,16 @@ just use `curl`.
 
 ```
 # complete a pending todo
-curl http://localhost:8081/todo/complete\?uuid\="xxx-xxx-46db-901f-5bd3c65e30b5"
+curl -X PUT http://localhost:8081/todo/complete\?uuid\="xxx-xxx-46db-901f-5bd3c65e30b5"
+
+# delete a todo
+curl -X DELETE http://localhost:8081/todo/delete\?uuid\="xxx-xxx-46db-901f-5bd3c65e30b5"
 ```
 
 Future goals
 ---------
-* Delete a Todo
+* Allow `TodoID` as queryparam
+* Use MonadLogger
+  - or research what the common implementation for logging in a webserver is
+* client?
+* users?
