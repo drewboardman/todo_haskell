@@ -11,13 +11,13 @@ import qualified Models                 as M (AllTodos, Completed, Content,
                                               Pending, Todo, TodoID (TodoID),
                                               TodoUpdateRequest (TodoUpdateRequest))
 import           Servant                ((:<|>) ((:<|>)), (:>), Application,
-                                         Get, Handler, JSON, Post,
+                                         Delete, Get, Handler, JSON, Post,
                                          Proxy (Proxy), Put, QueryParam,
                                          ReqBody, Server, err404, serve)
 import qualified TodoActions            as Actions (allTodos,
                                                     completePendingTodo,
-                                                    getSingleTodo, newTodo,
-                                                    updateTodoContent)
+                                                    deleteTodo, getSingleTodo,
+                                                    newTodo, updateTodoContent)
 
 -- :<|> "marketing" :> ReqBody '[JSON] ClientInfo :> Post '[JSON] Email
 type TodoAPI =
@@ -31,6 +31,8 @@ type TodoAPI =
   :<|> "todo" :> "update" :> ReqBody '[JSON] M.TodoUpdateRequest :> Post '[JSON] M.Todo
   -- PUT: /todo/complete/:uuid -- completed a Todo
   :<|> "todo" :> "complete" :> QueryParam "uuid" Uuid.UUID :> Put '[JSON] M.Completed
+  -- DELETE: /todo/delete/:uuid -- delete a Todo
+  :<|> "todo" :> "delete" :> QueryParam "uuid" Uuid.UUID :> Delete '[JSON] ()
 
 app :: Application
 app = serve todoAPI todoServer
@@ -39,7 +41,8 @@ todoAPI :: Proxy TodoAPI
 todoAPI = Proxy
 
 todoServer :: Server TodoAPI
-todoServer = todos :<|> todo :<|> newTodo :<|> update :<|> complete where
+todoServer =
+  todos :<|> todo :<|> newTodo :<|> update :<|> complete :<|> delete where
 
     todos :: Handler M.AllTodos
     todos = liftIO Actions.allTodos
@@ -73,3 +76,7 @@ todoServer = todos :<|> todo :<|> newTodo :<|> update :<|> complete where
       case maybeCompleted of
         Just completed -> pure completed
         Nothing        -> throwError err404
+
+    delete :: Maybe Uuid.UUID -> Handler ()
+    delete Nothing     = throwError err404
+    delete (Just uuid) = liftIO $ Actions.deleteTodo uuid

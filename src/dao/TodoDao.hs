@@ -17,6 +17,7 @@ module TodoDao ( TodoT(Todo)
                , insertPendingTodo
                , selectSingleTodo
                , updateTodo
+               , deleteTodo
                ) where
 
 import           Data.Maybe                               (listToMaybe)
@@ -32,12 +33,13 @@ import           Database.Beam                            (Beamable, Columnar,
                                                            Table (PrimaryKey, primaryKey),
                                                            TableEntity, all_,
                                                            defaultDbSettings,
-                                                           insert, insertValues,
-                                                           lookup_,
+                                                           delete, insert,
+                                                           insertValues,
+                                                           lookup_, runDelete,
                                                            runSelectReturningList,
                                                            runSelectReturningOne,
                                                            runUpdate, save,
-                                                           select)
+                                                           select, val_, (==.))
 import qualified Database.Beam.Backend.SQL.BeamExtensions as Extensions (runInsertReturningList)
 import           Database.Beam.Sqlite                     (Sqlite, SqliteM,
                                                            runBeamSqlite)
@@ -111,3 +113,13 @@ completePendingTodo uuid = do
     save (_todos todoDb)
     (todo { _todoFinishedAt = pure time })
   selectSingleTodo uuid
+
+-- might be nice to use exception here
+-- try to figure out runDeleteReturningList
+deleteTodo :: UUID -> IO ()
+deleteTodo uuid = do
+  let id' = toText uuid
+  conn <- open "todo1.db"
+  runBeamSqlite conn $
+    runDelete $ delete (_todos todoDb)
+    (\t -> _todoId t ==. val_ id')

@@ -5,6 +5,7 @@ module TodoActions ( updateTodoContent
                    , allTodos
                    , newTodo
                    , completePendingTodo
+                   , deleteTodo
                    ) where
 
 import           Control.Monad.IO.Class (liftIO)
@@ -21,7 +22,7 @@ import qualified Models                 as M (AllTodos (AllTodos),
                                               Todo (CompletedTodo, PendingTodo),
                                               TodoID (TodoID))
 import qualified TodoDao                as Dao (Todo, TodoT (Todo), allTodos,
-                                                completePendingTodo,
+                                                completePendingTodo, deleteTodo,
                                                 insertPendingTodo,
                                                 selectSingleTodo, updateTodo)
 
@@ -42,6 +43,9 @@ getSingleTodo :: M.TodoID -> IO (Maybe M.Todo)
 getSingleTodo (M.TodoID uuid) = do
   maybeFetched :: Maybe Dao.Todo <- Dao.selectSingleTodo uuid
   pure (toTodoM =<< maybeFetched)
+
+deleteTodo :: Uuid.UUID -> IO ()
+deleteTodo = Dao.deleteTodo
 
 updateTodoContent :: M.TodoID -> M.Content -> IO (Maybe M.Todo)
 updateTodoContent (M.TodoID uuid) (M.Content contentText) = do
